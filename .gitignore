@@ -9,3 +9,5 @@
 .~lock.*
 
 *.tmp
+
+node_modules/*
