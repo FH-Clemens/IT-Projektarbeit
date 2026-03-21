@@ -1,3 +1,4 @@
+import { saveQueueEntry, getValidEntry} from "./localStorageManger.js";
 
 const queueButton = document.getElementById('enter-queue-button');
 const userNumberSpan = document.getElementById('user-number');
@@ -14,6 +15,8 @@ function queueUp() {
 
         response.json().then(responseJSON => {
             userNumberSpan.textContent = responseJSON['queueNumber'];
+
+            saveQueueEntry(responseJSON['queueNumber']);
         })
     });
 }
@@ -41,9 +44,18 @@ function refreshQueueStatus() {
 }
 
 queueButton.addEventListener('click', event => {
-    queueUp();
+    const storedEntry = getValidEntry();
+    if(!storedEntry) {
+        queueUp();
+    }else {
+        userNumberSpan.textContent = storedEntry.queueNumber;
+    }
+
     refreshQueueStatus();
     event.stopPropagation();
 })
+
+const storedEntry = getValidEntry();
+if(storedEntry) userNumberSpan.textContent = storedEntry.queueNumber;
 
 refreshQueueStatus();
