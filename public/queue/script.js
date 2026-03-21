@@ -40,10 +40,10 @@ function refreshQueueStatus() {
 
 }
 
-
-
 queueButton.addEventListener('click', event => {
     queueUp();
     refreshQueueStatus();
     event.stopPropagation();
 })
+
+refreshQueueStatus();

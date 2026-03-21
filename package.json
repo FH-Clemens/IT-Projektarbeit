@@ -16,5 +16,6 @@
   "homepage": "https://github.com/FH-Clemens/IT-Projektarbeit#readme",
   "dependencies": {
     "express": "^5.2.1"
-  }
+  },
+  "type": "module"
 }
