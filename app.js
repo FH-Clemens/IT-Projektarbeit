@@ -1,5 +1,5 @@
 import express from 'express';
-import path, { dirname } from 'path';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
 
@@ -11,7 +11,7 @@ const app = express()
 const port = 3000
 
 const __filename = fileURLToPath(import.meta.url);
-global.APP_DIR = path.dirname(__filename);
+global.__APP_DIR__ = path.dirname(__filename);
 
 app.use(express.static('public'));
 
