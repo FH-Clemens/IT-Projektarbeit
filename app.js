@@ -1,14 +1,17 @@
 import express from 'express';
-
-import { addToQueue, getQueue } from './src/queue.js';
-import path from 'path';
+import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { readFile } from 'node:fs/promises';
+
+import StartupManager from "./src/startup.js";
+import { addToQueue, getQueue } from './src/queue.js';
+
 
 const app = express()
 const port = 3000
 
 const __filename = fileURLToPath(import.meta.url);
-export const APP_DIR = path.dirname(__filename);
+global.APP_DIR = path.dirname(__filename);
 
 app.use(express.static('public'));
 
@@ -35,6 +38,29 @@ app.get("/api/queue/get-queue", (req, res) => {
     }
 })
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+async function start() {
+
+    let config = null;
+
+    try {
+        const configPath = APP_DIR + "/config.json";
+        const response = await readFile(configPath);
+
+        config = JSON.parse(response);
+
+    } catch (e) {
+        console.error('Error reading config file: ', e);
+    }
+
+    const startupManager = new StartupManager();
+
+    console.log('Starting server...');
+
+    await startupManager.run(config);
+
+    app.listen(port, () => {
+        console.log(`Example app listening on port ${port}`)
+    })
+}
+
+await start();
