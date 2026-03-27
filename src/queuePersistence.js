@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { APP_DIR } from "../app.js";
 
 function saveQueue(queue){
     const now = new Date();
@@ -16,7 +15,7 @@ function saveQueue(queue){
     const folderName = `${year}${month}${day}`;
     const fileName = `${hours}${minutes}${seconds}.json`;
 
-    const folderPath = path.join(APP_DIR, 'queue-data', folderName);
+    const folderPath = path.join(__APP_DIR__, 'queue-data', folderName);
     const filePath = path.join(folderPath, fileName);
 
     if(!fs.existsSync(folderPath)){

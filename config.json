@@ -1,0 +1,5 @@
+{
+  "startup-params": {
+    "retain-data-days": 3
+  }
+}
