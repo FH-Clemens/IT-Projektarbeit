@@ -43,11 +43,10 @@ async function start() {
     let config = null;
 
     try {
-        const configPath = APP_DIR + "/config.json";
+        const configPath = __APP_DIR__ + "/config.json";
         const response = await readFile(configPath);
 
         config = JSON.parse(response);
-
     } catch (e) {
         console.error('Error reading config file: ', e);
     }
