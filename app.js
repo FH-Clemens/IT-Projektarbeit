@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
 import { addToQueue, getQueue } from './src/queue.js';
+import { saveQueue } from './src/queuePersistence.js';
 
 
 const app = express()
@@ -52,6 +53,26 @@ async function start() {
     }
 
     const startupManager = new StartupManager();
+    startupManager.addHook(async (properties, out) => {
+        try {
+            let queue = getQueue();
+
+            const now = Date.now();
+            const maxAge = properties["retain-data-days"] * 24 * 60 * 60 * 1000;
+
+            queue = queue.filter(item => {
+                const createdAt = new Date(item.createdAt).getTime();
+                return (now - createdAt) <= maxAge;
+            });
+
+            saveQueue(queue);
+
+            out.sequential = true;
+
+        } catch (e) {
+            console.error(e);
+        }
+    });
 
     console.log('Starting server...');
 
