@@ -5,15 +5,14 @@ import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
 import { addToQueue, getQueue } from './src/queue.js';
-import * as fs from 'fs/promises';
-
-
+import { removeStaleDataHook } from "./src/queuePersistence.js";
 
 const app = express()
 const port = 3000
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
+global.__DATA_DIR__ = path.join(__APP_DIR__, "/queue-data");
 
 app.use(express.static('public'));
 
@@ -53,43 +52,12 @@ async function start() {
         console.error('Error reading config file: ', e);
     }
     const startupManager = new StartupManager();
-    startupManager.addHook(async (properties, out) => {
-        try {
-            const retainDays = properties["retain-data-days"] || 3;
-            const queueDataPath = path.join(__APP_DIR__, "queue-data");
 
-            const cutoffDate = new Date();
-            cutoffDate.setDate(cutoffDate.getDate() - retainDays);
-
-            const year = cutoffDate.getFullYear();
-            const month = String(cutoffDate.getMonth() + 1).padStart(2, "0");
-            const day = String(cutoffDate.getDate()).padStart(2, "0");
-            const threshold = `${year}${month}${day}`;
-
-            const entries = await fs.readdir(queueDataPath);
-
-            for (const folderName of entries) {
-                if (/^\d{8}$/.test(folderName)) {
-                    if (folderName < threshold) {
-                        const fullPath = path.join(queueDataPath, folderName);
-                        await fs.rm(fullPath, { recursive: true, force: true });
-                        console.log("Deleted:", folderName);
-                    }
-                }
-            }
-
-            out.sequential = true;
-
-        } catch (e) {
-            console.error(e);
-        }
-    });
+    startupManager.addHook(removeStaleDataHook);
 
     console.log('Starting server...');
 
     await startupManager.run(config);
-
-
 
     app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)

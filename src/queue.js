@@ -1,4 +1,4 @@
-import saveQueue from "./queuePersistence.js";
+import { saveQueue } from "./queuePersistence.js";
 
 let queue = [];
 
