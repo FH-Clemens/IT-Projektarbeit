@@ -20,7 +20,12 @@ function getQueue() {
     return queue;
 }
 
+function setQueue(newQueue) {
+    queue = newQueue;
+}
+
 export {
     addToQueue,
-    getQueue
+    getQueue,
+    setQueue
 }

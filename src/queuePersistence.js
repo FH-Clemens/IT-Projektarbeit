@@ -1,6 +1,7 @@
 import fs from 'fs';
 import * as fsasync from 'fs/promises';
 import path from 'path';
+import {setQueue} from './queue.js';
 
 function saveQueue(queue){
     const now = new Date();
@@ -24,6 +25,53 @@ function saveQueue(queue){
     }
 
     fs.writeFileSync(filePath, JSON.stringify(queue, null, 2));
+}
+
+/**
+ * Lädt beim Start die neueste gespeicherte Queue-Datei von der Festplatte.
+ */
+async function loadQueueFromDiskHook(properties, out) {
+    out.sequential = true;
+
+    if (!fs.existsSync(__DATA_DIR__)) {
+        console.info("No queue-data directory found. Starting with empty queue.");
+        return;
+    }
+
+    const folders = await fsasync.readdir(__DATA_DIR__);
+
+    const validFolders = folders
+        .filter(folderName => /^\d{8}$/.test(folderName))
+        .sort();
+
+    if (validFolders.length === 0) {
+        console.info("No queue snapshots found. Starting with empty queue.");
+        return;
+    }
+
+    const newestFolder = validFolders[validFolders.length - 1];
+    const folderPath = path.join(__DATA_DIR__, newestFolder);
+
+    const files = await fsasync.readdir(folderPath);
+
+    const validFiles = files
+        .filter(fileName => /^\d{6}\.json$/.test(fileName))
+        .sort();
+
+    if (validFiles.length === 0) {
+        console.info("Latest queue-data folder is empty. Starting with empty queue.");
+        return;
+    }
+
+    const newestFile = validFiles[validFiles.length - 1];
+    const filePath = path.join(folderPath, newestFile);
+
+    const fileContent = await fsasync.readFile(filePath, 'utf-8');
+    const loadedQueue = JSON.parse(fileContent);
+
+    setQueue(loadedQueue);
+
+    console.info(`Loaded queue from disk: ${newestFolder}/${newestFile}`);
 }
 
 /**
@@ -77,5 +125,6 @@ async function removeStaleDataHook(properties, out){
 
 export {
     saveQueue,
+    loadQueueFromDiskHook,
     removeStaleDataHook
 }
