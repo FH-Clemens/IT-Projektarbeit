@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
 import { addToQueue, getQueue } from './src/queue.js';
-import { removeStaleDataHook } from "./src/queuePersistence.js";
+import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
 
 const app = express()
 const port = 3000
@@ -53,6 +53,7 @@ async function start() {
     }
     const startupManager = new StartupManager();
 
+    startupManager.addHook(loadQueueFromDiskHook);
     startupManager.addHook(removeStaleDataHook);
 
     console.log('Starting server...');
