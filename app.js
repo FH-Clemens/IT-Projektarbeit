@@ -1,4 +1,7 @@
 import express from 'express';
+import { initDB } from "./src/db.js";
+import employeeController from "./employeesRoutes.js";
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
@@ -6,8 +9,10 @@ import { readFile } from 'node:fs/promises';
 import StartupManager from "./src/startup.js";
 import { addToQueue, getQueue } from './src/queue.js';
 import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
+import employeesRoutes from "./employeesRoutes.js";
 
 const app = express()
+app.use(express.json());
 const port = 3000
 
 const __filename = fileURLToPath(import.meta.url);
@@ -51,6 +56,16 @@ async function start() {
     } catch (e) {
         console.error('Error reading config file: ', e);
     }
+
+    let db = await initDB();
+    console.log("Database initialized");
+    app.use((req, res, next) => {
+        req.db = db;
+        next();
+    });
+
+    app.use("/api/employees", employeesRoutes);
+
     const startupManager = new StartupManager();
 
     startupManager.addHook(loadQueueFromDiskHook);
