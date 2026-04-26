@@ -1,19 +1,19 @@
 import express from 'express';
-import { initDB } from "./src/db.js";
-import employeeController from "./employeesRoutes.js";
+import {initDB} from "./src/db.js";
 
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { readFile } from 'node:fs/promises';
+import cron from 'node-cron';
+import {fileURLToPath} from 'url';
+import {readFile} from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import { addToQueue, getQueue } from './src/queue.js';
-import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
+import {addToQueue, getQueue} from './src/queue.js';
+import {loadQueueFromDiskHook, removeStaleDataHook, removeStaleQueueData} from "./src/queuePersistence.js";
 import employeesRoutes from "./employeesRoutes.js";
 
 const app = express()
 app.use(express.json());
-const port = 3000
+const port = 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
@@ -70,6 +70,13 @@ async function start() {
 
     startupManager.addHook(loadQueueFromDiskHook);
     startupManager.addHook(removeStaleDataHook);
+
+    const schedule = config['startup-params']['remove-stale-data-schedule'];
+    const age = config['startup-params']['retain-data-days'];
+
+    if (cron.validate(schedule) && age && typeof age === 'number' && age >= 1) {
+        cron.schedule(schedule, () => removeStaleQueueData(age));
+    }
 
     console.log('Starting server...');
 
