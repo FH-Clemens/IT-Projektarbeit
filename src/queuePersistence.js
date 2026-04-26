@@ -110,7 +110,7 @@ async function removeStaleQueueData(minAgeDays = 3) {
 async function removeStaleDataHook(properties, out){
 
     out.sequential = true;
-    const retainDays = properties["retain-data-days"] || 3;
+    const retainDays = properties["queue.retain-data-days"] || 3;
 
     console.info(`Removing stale data. Retaining ${retainDays} days...`);
 

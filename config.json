@@ -1,5 +1,4 @@
 {
-  "startup-params": {
-    "retain-data-days": 3
-  }
+  "queue.retain-data-days": 3,
+  "queue.purge-data-schedule": "14 * * * *"
 }
