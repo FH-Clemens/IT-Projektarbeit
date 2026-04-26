@@ -1,19 +1,19 @@
 import express from 'express';
-import {initDB} from "./src/db.js";
+import { initDB } from "./src/db.js";
+import employeeController from "./employeesRoutes.js";
 
 import path from 'path';
-import cron from 'node-cron';
-import {fileURLToPath} from 'url';
-import {readFile} from 'node:fs/promises';
+import { fileURLToPath } from 'url';
+import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import {addToQueue, getQueue} from './src/queue.js';
-import {loadQueueFromDiskHook, removeStaleDataHook, removeStaleQueueData} from "./src/queuePersistence.js";
+import { addToQueue, getQueue, updateStatus } from './src/queue.js';
+import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
 import employeesRoutes from "./employeesRoutes.js";
 
 const app = express()
 app.use(express.json());
-const port = 3000;
+const port = 3000
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
@@ -44,6 +44,22 @@ app.get("/api/queue/get-queue", (req, res) => {
     }
 })
 
+app.post("/api/queue/update-status", (req, res) => {
+    try {
+        const { queueNumber, status } = req.body;
+        const success = updateStatus(queueNumber, status);
+        
+        if (success) {
+            res.status(200).send({ message: "Status erfolgreich geändert" });
+        } else {
+            res.status(404).send({ message: "Nummer nicht gefunden" });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).send();
+    }
+});
+
 async function start() {
 
     let config = null;
@@ -70,13 +86,6 @@ async function start() {
 
     startupManager.addHook(loadQueueFromDiskHook);
     startupManager.addHook(removeStaleDataHook);
-
-    const age = config['queue.retain-data-days'];
-    const schedule = config['queue.purge-data-schedule'];
-
-    if (cron.validate(schedule) && age && typeof age === 'number' && age >= 1) {
-        cron.schedule(schedule, () => removeStaleQueueData(age));
-    }
 
     console.log('Starting server...');
 
