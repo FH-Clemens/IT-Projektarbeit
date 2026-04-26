@@ -11,6 +11,9 @@ import { addToQueue, getQueue, updateStatus } from './src/queue.js';
 import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
 import employeesRoutes from "./employeesRoutes.js";
 
+// TEST
+import authRoutes from './src/modules/auth/routes.js';
+
 const app = express()
 app.use(express.json());
 const port = 3000
@@ -73,14 +76,10 @@ async function start() {
         console.error('Error reading config file: ', e);
     }
 
-    let db = await initDB();
-    console.log("Database initialized");
-    app.use((req, res, next) => {
-        req.db = db;
-        next();
-    });
-
     app.use("/api/employees", employeesRoutes);
+
+    // TEST
+    app.use("/test", authRoutes);
 
     const startupManager = new StartupManager();
 
