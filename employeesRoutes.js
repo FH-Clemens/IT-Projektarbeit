@@ -126,5 +126,38 @@ router.delete("/:id", async (req, res) => {
    }
 
 });
+router.get("/csrf-token", (req, res) => {
+    res.json({ token: "secret-123-csrf" });
+});
+
+router.post("/login", async (req, res) => {
+    const db = req.db;
+    const { username, password } = req.body;
+
+    try {
+        const employee = await db.get(`SELECT * FROM employees WHERE name = ?`, [username]);
+
+        if (employee) {
+            const match = await bcrypt.compare(password, employee.password_hash);
+
+            if (match) {
+                res.cookie('session_id', 'user-session-' + employee.id, {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'strict',
+                    maxAge: 3600000
+                });
+
+                return res.status(200).json({ message: "Login successful" });
+            }
+        }
+
+        res.status(401).json({ error: "Invalid credentials" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error during login" });
+    }
+});
 
 export default router;

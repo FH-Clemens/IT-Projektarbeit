@@ -1,6 +1,7 @@
 import express from 'express';
 import { initDB } from "./src/db.js";
 import employeeController from "./employeesRoutes.js";
+import cookieParser from 'cookie-parser';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,6 +14,7 @@ import employeesRoutes from "./employeesRoutes.js";
 
 const app = express()
 app.use(express.json());
+app.use(cookieParser());
 const port = 3000
 
 const __filename = fileURLToPath(import.meta.url);
@@ -81,6 +83,7 @@ async function start() {
     });
 
     app.use("/api/employees", employeesRoutes);
+    app.use("/api/auth", employeesRoutes);
 
     const startupManager = new StartupManager();
 
