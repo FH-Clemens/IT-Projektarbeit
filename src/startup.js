@@ -32,7 +32,7 @@ export default class StartupManager {
     async run(config) {
 
         if (config) {
-            Object.assign(this.startupProperties, config['startup-params']);
+            Object.assign(this.startupProperties, config);
         }
 
         if (this.hooks.length === 0) return;
