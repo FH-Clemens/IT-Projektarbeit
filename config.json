@@ -1,5 +1,6 @@
 {
   "startup-params": {
-    "retain-data-days": 3
+    "retain-data-days": 3,
+    "remove-stale-data-schedule": "14 * * * *"
   }
 }

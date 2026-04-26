@@ -126,5 +126,6 @@ async function removeStaleDataHook(properties, out){
 export {
     saveQueue,
     loadQueueFromDiskHook,
-    removeStaleDataHook
+    removeStaleDataHook,
+    removeStaleQueueData
 }
