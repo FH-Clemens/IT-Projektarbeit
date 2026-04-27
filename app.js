@@ -1,5 +1,6 @@
 import express from 'express';
 import { initDB } from "./src/db.js";
+import cron from 'node-cron';
 import employeeController from "./employeesRoutes.js";
 import cookieParser from 'cookie-parser';
 
@@ -9,7 +10,7 @@ import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
 import { addToQueue, getQueue, updateStatus } from './src/queue.js';
-import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
+import {loadQueueFromDiskHook, removeStaleDataHook, removeStaleQueueData} from "./src/queuePersistence.js";
 import employeesRoutes from "./employeesRoutes.js";
 
 const app = express()
@@ -89,6 +90,13 @@ async function start() {
 
     startupManager.addHook(loadQueueFromDiskHook);
     startupManager.addHook(removeStaleDataHook);
+
+    const age = config['queue.retain-data-days'];
+    const schedule = config['queue.purge-data-schedule'];
+
+    if (cron.validate(schedule) && age && typeof age === 'number' && age >= 1) {
+        cron.schedule(schedule, () => removeStaleQueueData(age));
+    }
 
     console.log('Starting server...');
 
