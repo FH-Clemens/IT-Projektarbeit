@@ -1,9 +1,9 @@
-
-import { findCredentialsByEmail } from "./persistence.js";
-import {AuthenticationError} from "./exceptions.js";
-import { verifyPassword } from "./hash.js";
-import getJWTSecret from "./secret-provider.js";
 import jwt from 'jsonwebtoken';
+
+import {findCredentialsByEmail} from "./persistence.js";
+import {AuthenticationError} from "./exceptions.js";
+import {verifyPassword} from "./hash.js";
+import getJWTSecret from "./secret-provider.js";
 
 
 /**
@@ -15,7 +15,12 @@ import jwt from 'jsonwebtoken';
  * Um daten zu speichern oder zu lesen brauchen wir noch die letzte layer, die persistence layer.
  * */
 
+/**
+ * Versucht einen user durch email & passwort zu authentifizieren.
+ * */
 export async function authenticateUser(email, password) {
+
+    // TODO login attempt tracking + delay
 
     if (typeof email !== 'string') {
         throw new AuthenticationError('Failed to authenticate: email must be non blank string');

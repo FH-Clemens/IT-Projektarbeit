@@ -1,17 +1,16 @@
 import express from 'express';
 import path from 'path';
+
 import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import { addToQueue, getQueue, updateStatus } from './src/modules/queue/service.js';
 import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/modules/queue/persistence.js";
 
 import {tokenParser} from "./src/modules/auth/middleware.js";
 
 import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
-import QueueRouter from "./src/modules/queue/routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
@@ -20,11 +19,14 @@ global.__DATA_DIR__ = path.join(__APP_DIR__, "/queue-data");
 const port = 3000;
 const app = express();
 
+// Middleware
 app.use(express.json());
 app.use(tokenParser);
-app.use(express.static('public'));
 
-app.use(QueueRouter);
+// Routes
+app.use(express.static('public'));
+app.use(authRouter);
+app.use("/api/employees", employeesRoutes);
 
 async function start() {
 
@@ -38,11 +40,6 @@ async function start() {
     } catch (e) {
         console.error('Error reading config file: ', e);
     }
-
-    app.use("/api/employees", employeesRoutes);
-
-    // TEST
-    app.use("/api", authRouter);
 
     const startupManager = new StartupManager();
 

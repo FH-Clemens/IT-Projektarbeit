@@ -16,6 +16,12 @@ const QUERY = `
  * Die Persistence Layer, hier durch ein Repository implementiert, trennt die Anwendung von dauerhaft
  * gespeicherten daten. Das Repository sollte ein interface sein, wobei die art der Speicherung egal ist.
  * */
+
+/**
+ * Versucht ein Credentials Domain Entity anhand seiner email zu finden.
+ * @param {string} email
+ * @returns {Promise<UserCredentials | null>}
+ * */
 export async function findCredentialsByEmail(email) {
 
     return db.get(QUERY, email)

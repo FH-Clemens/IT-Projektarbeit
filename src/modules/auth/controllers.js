@@ -1,5 +1,5 @@
-import { authenticateUser } from "./service.js";
-import {AuthenticationError, InvalidCredentialsError} from "./exceptions.js";
+import { authenticateUser } from "./services.js";
+import { AuthenticationError, InvalidCredentialsError } from "./exceptions.js";
 
 /**
  * Application Module Tutorial:
@@ -10,7 +10,7 @@ import {AuthenticationError, InvalidCredentialsError} from "./exceptions.js";
  * Auch eine ordentliche HTTP response wird vom Controller zurückgeschickt.
  * */
 
-export async function login(req, res, next) {
+export async function loginController(req, res, next) {
 
     const parsed = parseParams(req.body);
 
