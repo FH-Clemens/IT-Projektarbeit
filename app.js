@@ -1,7 +1,4 @@
 import express from 'express';
-import { initDB } from "./src/db.js";
-import employeeController from "./employeesRoutes.js";
-
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
@@ -9,19 +6,21 @@ import { readFile } from 'node:fs/promises';
 import StartupManager from "./src/startup.js";
 import { addToQueue, getQueue, updateStatus } from './src/queue.js';
 import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
+
+import {tokenParser} from "./src/modules/auth/middleware.js";
+
 import employeesRoutes from "./employeesRoutes.js";
-
-// TEST
-import authRoutes from './src/modules/auth/routes.js';
-
-const app = express()
-app.use(express.json());
-const port = 3000
+import authRouter from './src/modules/auth/routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
 global.__DATA_DIR__ = path.join(__APP_DIR__, "/queue-data");
 
+const port = 3000;
+const app = express();
+
+app.use(express.json());
+app.use(tokenParser);
 app.use(express.static('public'));
 
 app.get("/api/queue/enter", (req, res) => {
@@ -79,7 +78,7 @@ async function start() {
     app.use("/api/employees", employeesRoutes);
 
     // TEST
-    app.use("/test", authRoutes);
+    app.use("/api", authRouter);
 
     const startupManager = new StartupManager();
 
