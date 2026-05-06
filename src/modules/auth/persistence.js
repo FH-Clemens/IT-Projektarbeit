@@ -17,6 +17,7 @@ const QUERY = `
  * gespeicherten daten. Das Repository sollte ein interface sein, wobei die art der Speicherung egal ist.
  * */
 export async function findCredentialsByEmail(email) {
+
     return db.get(QUERY, email)
         .then(parseUserCredentialsRow)
         .catch(error => {

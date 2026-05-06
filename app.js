@@ -4,13 +4,14 @@ import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import { addToQueue, getQueue, updateStatus } from './src/queue.js';
-import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
+import { addToQueue, getQueue, updateStatus } from './src/modules/queue/service.js';
+import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/modules/queue/persistence.js";
 
 import {tokenParser} from "./src/modules/auth/middleware.js";
 
 import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
+import QueueRouter from "./src/modules/queue/routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
@@ -23,44 +24,7 @@ app.use(express.json());
 app.use(tokenParser);
 app.use(express.static('public'));
 
-app.get("/api/queue/enter", (req, res) => {
-    try {
-        const entry = addToQueue();
-        res.status(200);
-        res.send(entry);
-    } catch (e) {
-        console.error(e);
-        res.status(500);
-        res.send();
-    }
-})
-
-app.get("/api/queue/get-queue", (req, res) => {
-    try {
-        res.status(200);
-        res.send({"queue": getQueue()});
-    } catch (e) {
-        console.error(e);
-        res.status(500);
-        res.send();
-    }
-})
-
-app.post("/api/queue/update-status", (req, res) => {
-    try {
-        const { queueNumber, status } = req.body;
-        const success = updateStatus(queueNumber, status);
-        
-        if (success) {
-            res.status(200).send({ message: "Status erfolgreich geändert" });
-        } else {
-            res.status(404).send({ message: "Nummer nicht gefunden" });
-        }
-    } catch (e) {
-        console.error(e);
-        res.status(500).send();
-    }
-});
+app.use(QueueRouter);
 
 async function start() {
 
