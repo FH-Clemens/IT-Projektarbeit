@@ -1,10 +1,12 @@
 
-/* Beispiel Funktion für eine Startup hook
+/* Beispiel Funktion für eine Startup hook:
+
 async function setFlag(properties, out) {
     properties['didThing'] = true;
     out.sequential = true;
     console.log("Did thing");
 }
+
 */
 
 export default class StartupManager {

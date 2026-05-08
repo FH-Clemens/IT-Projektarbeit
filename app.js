@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/modules/queue/persistence.js";
+import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
 
 import {tokenParser} from "./src/modules/auth/middleware.js";
 
