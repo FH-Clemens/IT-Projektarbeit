@@ -1,67 +1,32 @@
 import express from 'express';
-import { initDB } from "./src/db.js";
-import cron from 'node-cron';
-import employeeController from "./employeesRoutes.js";
-import cookieParser from 'cookie-parser';
-
 import path from 'path';
+
 import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import { addToQueue, getQueue, updateStatus } from './src/queue.js';
-import {loadQueueFromDiskHook, removeStaleDataHook, removeStaleQueueData} from "./src/queuePersistence.js";
-import employeesRoutes from "./employeesRoutes.js";
+import { loadQueueFromDiskHook, removeStaleDataHook } from "./src/queuePersistence.js";
 
-const app = express()
-app.use(express.json());
-app.use(cookieParser());
-const port = 3000
+import {tokenParser} from "./src/modules/auth/middleware.js";
+
+import employeesRoutes from "./employeesRoutes.js";
+import authRouter from './src/modules/auth/routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
 global.__DATA_DIR__ = path.join(__APP_DIR__, "/queue-data");
 
+const port = 3000;
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(tokenParser);
+
+// Routes
 app.use(express.static('public'));
-
-app.get("/api/queue/enter", (req, res) => {
-    try {
-        const entry = addToQueue();
-        res.status(200);
-        res.send(entry);
-    } catch (e) {
-        console.error(e);
-        res.status(500);
-        res.send();
-    }
-})
-
-app.get("/api/queue/get-queue", (req, res) => {
-    try {
-        res.status(200);
-        res.send({"queue": getQueue()});
-    } catch (e) {
-        console.error(e);
-        res.status(500);
-        res.send();
-    }
-})
-
-app.post("/api/queue/update-status", (req, res) => {
-    try {
-        const { queueNumber, status } = req.body;
-        const success = updateStatus(queueNumber, status);
-        
-        if (success) {
-            res.status(200).send({ message: "Status erfolgreich geändert" });
-        } else {
-            res.status(404).send({ message: "Nummer nicht gefunden" });
-        }
-    } catch (e) {
-        console.error(e);
-        res.status(500).send();
-    }
-});
+app.use(authRouter);
+app.use("/api/employees", employeesRoutes);
 
 async function start() {
 
@@ -75,16 +40,6 @@ async function start() {
     } catch (e) {
         console.error('Error reading config file: ', e);
     }
-
-    let db = await initDB();
-    console.log("Database initialized");
-    app.use((req, res, next) => {
-        req.db = db;
-        next();
-    });
-
-    app.use("/api/employees", employeesRoutes);
-    app.use("/api/auth", employeesRoutes);
 
     const startupManager = new StartupManager();
 
