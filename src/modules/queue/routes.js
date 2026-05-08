@@ -6,7 +6,7 @@ import { enterQueueController, getQueueController, updateStatusController } from
 const router = express.Router();
 
 // öffentlich
-router.post('api/queue/enter', enterQueueController);
+router.post('/api/queue/enter', enterQueueController);
 router.get('/api/queue/get-queue', getQueueController);
 
 // nur Mitarbeiter

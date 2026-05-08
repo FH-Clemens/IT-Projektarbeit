@@ -26,7 +26,7 @@ export function getQueue() {
 export function updateQueueStatus(queueNumber, status) {
 
     const queue = getQueueSnapshot();
-    const entry = queue.finnd(q => q.queueNumber === Number(queueNumber));
+    const entry = queue.find(q => q.queueNumber === Number(queueNumber));
     if(!entry) return false;
 
     entry.status = status;

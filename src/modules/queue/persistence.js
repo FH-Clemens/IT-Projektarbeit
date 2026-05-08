@@ -12,7 +12,7 @@ export function getQueueSnapshot() {
     return [...queue];
 }
 
-export function saveQueue(queue){
+export function saveQueue(){
     const now = new Date();
 
     const folder = now.toISOString().slice(0,10).replaceAll('-', '');

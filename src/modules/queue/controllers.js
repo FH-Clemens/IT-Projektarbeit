@@ -1,4 +1,4 @@
-import * as service from 'services.js';
+import * as service from './services.js';
 
 export function enterQueueController(req, res) {
     const entry = service.enterQueue();
