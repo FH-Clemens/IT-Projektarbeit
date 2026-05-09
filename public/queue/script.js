@@ -6,7 +6,9 @@ const queueRenderList = document.getElementById('queue-render');
 
 function queueUp() {
 
-    fetch("/api/queue/enter").then(response => {
+    fetch("/api/queue/enter", {
+        method: 'POST'
+    }).then(response => {
 
         if (!response.ok) {
             console.warn(`Failed to enter queue: ${response.statusText}`);
