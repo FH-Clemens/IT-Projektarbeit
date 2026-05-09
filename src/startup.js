@@ -9,6 +9,8 @@ async function setFlag(properties, out) {
 
 */
 
+import {readFile} from "node:fs/promises";
+
 export default class StartupManager {
 
     constructor() {
@@ -31,7 +33,18 @@ export default class StartupManager {
         return this;
     }
 
-    async run(config) {
+    async run() {
+
+        let config = null;
+
+        try {
+            const configPath = __APP_DIR__ + "/config.json";
+            const response = await readFile(configPath, 'utf-8');
+
+            config = JSON.parse(response);
+        } catch (e) {
+            console.error('Error reading config file: ', e);
+        }
 
         if (config) {
             Object.assign(this.startupProperties, config);

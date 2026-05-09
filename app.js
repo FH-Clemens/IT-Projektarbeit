@@ -1,15 +1,12 @@
 import express from 'express';
 import path from 'path';
-import cron from 'node-cron';
 
 import { fileURLToPath } from 'url';
-import { readFile } from 'node:fs/promises';
-
-import StartupManager from "./src/startup.js";
-import {removeStaleQueueData } from "./src/modules/queue/persistence.js";
-import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/startupHooks.js";
 
 import {tokenParser} from "./src/modules/auth/middleware.js";
+
+import StartupManager from "./src/startup.js";
+import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/hooks.js";
 
 import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
@@ -32,37 +29,19 @@ app.use(authRouter);
 app.use("/api/employees", employeesRoutes);
 app.use(queueRouter);
 
+const startupManager = new StartupManager();
+
+startupManager.addHook(loadQueueFromDiskHook);
+startupManager.addHook(removeStaleDataHook);
+
 async function start() {
-
-    let config = null;
-
-    try {
-        const configPath = __APP_DIR__ + "/config.json";
-        const response = await readFile(configPath, 'utf-8');
-
-        config = JSON.parse(response);
-    } catch (e) {
-        console.error('Error reading config file: ', e);
-    }
-
-    const startupManager = new StartupManager();
-
-    startupManager.addHook(loadQueueFromDiskHook);
-    startupManager.addHook(removeStaleDataHook);
-
-    const age = config['queue.retain-data-days'];
-    const schedule = config['queue.purge-data-schedule'];
-
-    if (cron.validate(schedule) && age && typeof age === 'number' && age >= 1) {
-        cron.schedule(schedule, () => removeStaleQueueData(age));
-    }
 
     console.log('Starting server...');
 
-    await startupManager.run(config);
+    await startupManager.run();
 
     app.listen(port, () => {
-        console.log(`Example app listening on port ${port}`)
+        console.log(`App listening on port ${port}`)
     })
 }
 
