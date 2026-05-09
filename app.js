@@ -6,12 +6,14 @@ import { fileURLToPath } from 'url';
 import { readFile } from 'node:fs/promises';
 
 import StartupManager from "./src/startup.js";
-import {loadQueueFromDiskHook, removeStaleDataHook, removeStaleQueueData} from "./src/queuePersistence.js";
+import {removeStaleQueueData } from "./src/modules/queue/persistence.js";
+import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/startupHooks.js";
 
 import {tokenParser} from "./src/modules/auth/middleware.js";
 
 import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
+import queueRouter from './src/modules/queue/routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
@@ -28,6 +30,7 @@ app.use(tokenParser);
 app.use(express.static('public'));
 app.use(authRouter);
 app.use("/api/employees", employeesRoutes);
+app.use(queueRouter);
 
 async function start() {
 
