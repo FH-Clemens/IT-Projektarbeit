@@ -11,13 +11,13 @@ export function getQueueController(req, res) {
 }
 
 export function updateStatusController(req, res) {
-    const { queueNumber, status } = req.body;
+    const { queueNumber, status, servicePoint } = req.body;
 
     if (!queueNumber || !status) {
         return res.status(400).json({error: 'Invalid request'});
     }
 
-    const updated = service.updateQueueStatus(queueNumber, status);
+    const updated = service.updateQueueStatus(queueNumber, status, servicePoint);
 
     if(!updated) {
         return res.status(404).json({error: 'Queue entry not found'});
