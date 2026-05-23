@@ -28,7 +28,7 @@ export default function requireRole(...allowedRoles) {
             return res.status(401).json({ error: 'Not Authenticated' });
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
+        if (!allowedRoles.includes(req.auth.role)) {
             return res.status(403).json({ error: 'Not Authorized' });
         }
 
