@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
-import getJWTSecret from "./secret-provider.js";
+import {getJWTSecret} from "./secret-provider.js";
 
 export function tokenParser(req, res, next) {
 
-    const token = req.cookies?.auth;
+    const token = req.cookies
     if (!token) return next();
 
     try {

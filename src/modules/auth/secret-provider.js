@@ -1,6 +1,12 @@
 
-const secret = process.env.JWT_SECRET;
+const jwtSecret = process.env.JWT_SECRET;
 
-export default function getJWTSecret() {
-    return secret;
+export function getJWTSecret() {
+    return jwtSecret;
+}
+
+const csrfSecret = process.env.CSRF_SECRET;
+
+export function getCSRFSecret() {
+    return csrfSecret;
 }

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import {findCredentialsByEmail} from "./persistence.js";
 import {AuthenticationError} from "./exceptions.js";
 import {verifyPassword} from "./hash.js";
-import getJWTSecret from "./secret-provider.js";
+import {getJWTSecret} from "./secret-provider.js";
 
 
 /**
