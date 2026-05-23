@@ -3,7 +3,8 @@ import path from 'path';
 
 import { fileURLToPath } from 'url';
 
-import {tokenParser} from "./src/modules/auth/middleware.js";
+import requireRole, {tokenParser} from "./src/modules/auth/middleware.js";
+import cookieParser from 'cookie-parser';
 
 import StartupManager from "./src/startup.js";
 import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/hooks.js";
@@ -11,6 +12,7 @@ import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/
 import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
 import queueRouter from './src/modules/queue/routes.js';
+import ROLES from "./src/modules/auth/roles.js";
 
 const __filename = fileURLToPath(import.meta.url);
 global.__APP_DIR__ = path.dirname(__filename);
@@ -21,10 +23,12 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser())
 app.use(tokenParser);
 
 // Routes
 app.use(express.static('public'));
+app.use("/internal", requireRole(ROLES.ADMIN, ROLES.CLERK), express.static('protected'));
 app.use(authRouter);
 app.use("/api/employees", employeesRoutes);
 app.use(queueRouter);
