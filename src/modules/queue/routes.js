@@ -1,5 +1,5 @@
 import express from "express";
-import requireRole from "../auth/middleware.js";
+import requireRole, {csrfProtection} from "../auth/middleware.js";
 import ROLES from "../auth/roles.js";
 import { enterQueueController, getQueueController, updateStatusController } from "./controllers.js";
 
@@ -12,6 +12,7 @@ router.get('/api/queue/get-queue', getQueueController);
 // nur Mitarbeiter
 router.post(
     '/api/queue/update-status',
+    csrfProtection,
     requireRole(ROLES.ADMIN, ROLES.CLERK),
     updateStatusController
 );
