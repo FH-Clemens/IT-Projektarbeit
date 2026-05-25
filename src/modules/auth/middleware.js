@@ -1,13 +1,19 @@
 import jwt from "jsonwebtoken";
 import {getJWTSecret} from "./secret-provider.js";
 
+import { createCSRFToken, validateCSRFToken } from "./csrf.js";
+
+export function csrfValidator(req, res, next) {
+
+}
+
 export function tokenParser(req, res, next) {
 
-    const token = req.cookies
-    if (!token) return next();
+    const cookies = req.cookies
+    if (!cookies) return next();
 
     try {
-        const payload = jwt.verify(token, getJWTSecret());
+        const payload = jwt.verify(cookies.auth, getJWTSecret());
         req.auth = { id: payload.uid, name: payload.name, role: payload.role  };
     } catch {
         req.auth = undefined;
