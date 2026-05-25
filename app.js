@@ -4,13 +4,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import requireRole, {tokenParser} from "./src/modules/auth/middleware.js";
+import cookieParser from 'cookie-parser';
 
 import StartupManager from "./src/startup.js";
 import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/hooks.js";
 
+import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
 import queueRouter from './src/modules/queue/routes.js';
-import Roles from "./src/modules/auth/roles.js";
+import ROLES from "./src/modules/auth/roles.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -22,13 +24,14 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(tokenParser);
+app.use(cookieParser())
+app.use(tokenParser());
 
 // Routes
 app.use(express.static('public'));
-app.use('/internal', requireRole(Roles.ADMIN, Roles.CLERK), express.static('protected'));
-
+app.use("/internal", requireRole(ROLES.ADMIN, ROLES.CLERK), express.static('protected'));
 app.use(authRouter);
+app.use("/api/employees", employeesRoutes);
 app.use(queueRouter);
 
 const startupManager = new StartupManager();
