@@ -1,19 +1,24 @@
 import jwt from "jsonwebtoken";
-import getJWTSecret from "./secret-provider.js";
+import {getCSRFSecret, getJWTSecret} from "./secret-provider.js";
 
-export function tokenParser(req, res, next) {
+import { validateCSRFToken } from "./csrf.js";
+import {CSRF_TOKEN_HEADER_NAME} from "./constants.js";
 
-    const token = req.cookies?.auth;
-    if (!token) return next();
+export function tokenParser() {
 
-    try {
-        const payload = jwt.verify(token, getJWTSecret());
-        req.auth = { id: payload.uid, name: payload.name, role: payload.role  };
-    } catch {
-        req.auth = undefined;
+    return (req, res, next) => {
+
+        const token = req.cookies.auth
+        if (!token) return next();
+
+        try {
+            req.jwt = jwt.verify(token, getJWTSecret());
+        } catch {
+            return res.status(401).json({ error: 'Invalid signature' });
+        }
+
+        next();
     }
-
-    next();
 }
 
 export default function requireRole(...allowedRoles) {
@@ -24,14 +29,31 @@ export default function requireRole(...allowedRoles) {
 
     return (req, res, next) => {
 
-        if (!req.auth) {
+        if (!req.jwt) {
             return res.status(401).json({ error: 'Not Authenticated' });
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
+        if (!allowedRoles.includes(req.jwt.role)) {
             return res.status(403).json({ error: 'Not Authorized' });
         }
 
         next();
     }
+}
+
+export function csrfProtection(req, res, next) {
+
+    if (req.method === 'GET') next();
+
+    const csrfToken = req.header(CSRF_TOKEN_HEADER_NAME);
+
+    if (!csrfToken) {
+        return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+
+    if (!validateCSRFToken(getCSRFSecret(), csrfToken, req.jwt.jti)) {
+        return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+
+    next();
 }

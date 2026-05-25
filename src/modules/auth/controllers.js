@@ -1,5 +1,5 @@
-import { authenticateUser } from "./services.js";
-import { AuthenticationError, InvalidCredentialsError } from "./exceptions.js";
+import {authenticateUser} from "./services.js";
+import {CSRF_TOKEN_COOKIE_NAME} from "./constants.js";
 
 /**
  * Application Module Tutorial:
@@ -15,35 +15,40 @@ export async function loginController(req, res, next) {
     const parsed = parseParams(req.body);
 
     if (!parsed) {
-        return res.status(400).json({ error: 'Malformed request. Email and password required' });
+        return res.status(400).json({error: 'Malformed request. Email and password required'});
     }
 
-    const { email, password } = parsed;
+    const {email, password} = parsed;
 
     authenticateUser(email, password)
-        .then(token => {
-            if (!token) throw new Error('Failed to receive Token from Application');
+        .then(result => {
 
-            res.cookie('auth', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                path: '/'
-            });
+            if (result.success === true && result.jwt) {
 
-            res.status(204).end();
-        })
-        .catch(error => {
-            if (error instanceof InvalidCredentialsError) {
-                return res.status(401).json({ error: 'Invalid credentials' });
+                res.cookie('auth', result.jwt, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/'
+                });
+
+                res.cookie(CSRF_TOKEN_COOKIE_NAME, result.csrfToken, {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/'
+                })
+
+                return res.status(204).end();
             }
 
-            if (error instanceof AuthenticationError) {
-                return res.status(401).json({ error: 'Failed to authenticate' });
+            if (result.failureReason) {
+                return res.status(401).json({error: result.failureReason});
             }
 
-            next(error);
+            res.status(401).end();
         })
+        .catch(next);
 }
 
 function parseParams(body) {
@@ -53,5 +58,5 @@ function parseParams(body) {
     if (!('email' in body && typeof body.email === 'string')) return null;
     if (!('password' in body && typeof body.password === 'string')) return null;
 
-    return { email: body.email, password: body.password };
+    return {email: body.email, password: body.password};
 }
