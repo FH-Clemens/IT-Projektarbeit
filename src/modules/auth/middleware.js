@@ -1,26 +1,33 @@
 import jwt from "jsonwebtoken";
-import {getJWTSecret} from "./secret-provider.js";
+import {getCSRFSecret, getJWTSecret} from "./secret-provider.js";
 
-import { createCSRFToken, validateCSRFToken } from "./csrf.js";
+import { validateCSRFToken } from "./csrf.js";
 
-export function csrfValidator(req, res, next) {
+const CSRF_TOKEN_HEADER = 'X-CSRF-Token';
 
-}
+export function tokenParser() {
 
-export function tokenParser(req, res, next) {
+    return (req, res, next) => {
 
-    const cookies = req.cookies
-    if (!cookies) return next();
+        const csrfToken = req.header(CSRF_TOKEN_HEADER);
+        const auth = req.cookies.auth
 
-    try {
-        const payload = jwt.verify(cookies.auth, getJWTSecret());
-        req.auth = { id: payload.uid, name: payload.name, role: payload.role  };
-    } catch {
-        req.auth = undefined;
+        // TODO create guest jwt
+        if (!auth) return next();
+
+        const jsonWebtoken = jwt.verify(auth, getJWTSecret());
+        const jti = jsonWebtoken.jti;
+
+        if (!validateCSRFToken(getCSRFSecret(), csrfToken, jti)) {
+            return req.status(403).json({ error: 'Invalid CSRF token' });
+        }
+
+        req.jwt = jsonWebtoken;
+
+        next();
     }
-
-    next();
 }
+
 
 export default function requireRole(...allowedRoles) {
 

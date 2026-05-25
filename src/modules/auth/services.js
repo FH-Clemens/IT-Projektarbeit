@@ -3,18 +3,21 @@ import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 import {findCredentialsByEmail} from "./persistence.js";
 import {verifyPassword} from "./hash.js";
-import {getJWTSecret} from "./secret-provider.js";
+import {getCSRFSecret, getJWTSecret} from "./secret-provider.js";
+import {createCSRFToken} from "./csrf.js";
 
 class AuthenticationResult {
 
     success;
-    token;
-    reason;
+    jwt;
+    csrfToken;
+    failureReason;
 
-    constructor(success, token, reason) {
+    constructor(success, jwt, csrfToken, reason) {
         this.success = success;
-        this.token = token;
-        this.reason = reason ?? null;
+        this.jwt = jwt;
+        this.csrfToken = csrfToken;
+        this.failureReason = reason ?? null;
     }
 }
 
@@ -66,7 +69,8 @@ export async function authenticateUser(email, password) {
         role: credentials.role
     };
 
-    const token = jwt.sign(body, secret, options);
+    const authToken = jwt.sign(body, secret, options);
+    const csrfToken = createCSRFToken(getCSRFSecret(), authToken['jti'], randomBytes(RAND_LEN).toString('base64url'));
 
-    return new AuthenticationResult(true, token);
+    return new AuthenticationResult(true, authToken, csrfToken);
 }

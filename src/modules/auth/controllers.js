@@ -1,4 +1,6 @@
 import { authenticateUser } from "./services.js";
+import {createCSRFToken} from "./csrf.js";
+import {getCSRFSecret} from "./secret-provider.js";
 
 /**
  * Application Module Tutorial:
@@ -22,20 +24,27 @@ export async function loginController(req, res, next) {
     authenticateUser(email, password)
         .then(result => {
 
-            if (result.success === true && result.token) {
+            if (result.success === true && result.jwt) {
 
-                res.cookie('auth', result.token, {
+                res.cookie('auth', result.jwt, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
                     path: '/'
                 });
 
+                res.cookie('csrf_token', result.csrfToken, {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/'
+                })
+
                 return res.status(204).end();
             }
 
-            if (result.reason) {
-                return res.status(401).json({ error: result.reason });
+            if (result.failureReason) {
+                return res.status(401).json({ error: result.failureReason });
             }
 
             res.status(401).end();
