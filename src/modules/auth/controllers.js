@@ -1,5 +1,4 @@
 import { authenticateUser } from "./services.js";
-import { AuthenticationError, InvalidCredentialsError } from "./exceptions.js";
 
 /**
  * Application Module Tutorial:
@@ -21,29 +20,27 @@ export async function loginController(req, res, next) {
     const { email, password } = parsed;
 
     authenticateUser(email, password)
-        .then(token => {
-            if (!token) throw new Error('Failed to receive Token from Application');
+        .then(result => {
 
-            res.cookie('auth', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                path: '/'
-            });
+            if (result.success === true && result.token) {
 
-            res.status(204).end();
-        })
-        .catch(error => {
-            if (error instanceof InvalidCredentialsError) {
-                return res.status(401).json({ error: 'Invalid credentials' });
+                res.cookie('auth', result.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    path: '/'
+                });
+
+                return res.status(204).end();
             }
 
-            if (error instanceof AuthenticationError) {
-                return res.status(401).json({ error: 'Failed to authenticate' });
+            if (result.reason) {
+                return res.status(401).json({ error: result.reason });
             }
 
-            next(error);
+            res.status(401).end();
         })
+        .catch(next);
 }
 
 function parseParams(body) {

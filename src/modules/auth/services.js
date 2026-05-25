@@ -1,10 +1,22 @@
 import jwt from 'jsonwebtoken';
 
+import { randomUUID } from 'node:crypto';
 import {findCredentialsByEmail} from "./persistence.js";
-import {AuthenticationError} from "./exceptions.js";
 import {verifyPassword} from "./hash.js";
 import {getJWTSecret} from "./secret-provider.js";
 
+class AuthenticationResult {
+
+    success;
+    token;
+    reason;
+
+    constructor(success, token, reason) {
+        this.success = success;
+        this.token = token;
+        this.reason = reason ?? null;
+    }
+}
 
 /**
  * Application Module Tutorial:
@@ -23,40 +35,38 @@ export async function authenticateUser(email, password) {
     // TODO login attempt tracking + delay
 
     if (typeof email !== 'string') {
-        throw new AuthenticationError('Failed to authenticate: email must be non blank string');
+        return new AuthenticationResult(false, null, 'Email missing or blank');
     }
 
     if (typeof password !== 'string') {
-        throw new AuthenticationError('Failed to authenticate: password must be non blank string')
+        return new AuthenticationResult(false, null, 'Password missing or blank');
     }
 
     const credentials = await findCredentialsByEmail(email);
 
     if (!credentials) {
-        throw new AuthenticationError('User not found');
+        return new AuthenticationResult(false, null, 'User not found');
     }
 
     if (!await verifyPassword(password, credentials.passwordHash)) {
-        throw new AuthenticationError('Invalid Password');
+        return new AuthenticationResult(false, null, 'User and password do not match');
     }
 
     const secret = getJWTSecret();
 
     const options = {
         algorithm: 'HS256',
-        expiresIn: 60 * 60 * 24
+        expiresIn: 60 * 60 * 24,
+        jwtid: randomUUID()
     }
 
     const body = {
-        uid: credentials.id,
+        sub: credentials.id,
         name: credentials.name,
         role: credentials.role
     };
 
-    return new Promise((resolve, reject) => {
-        jwt.sign(body, secret, options, (err, token) => {
-            if (err) reject(err);
-            else resolve(token);
-        })
-    })
+    const token = jwt.sign(body, secret, options);
+
+    return new AuthenticationResult(true, token);
 }
