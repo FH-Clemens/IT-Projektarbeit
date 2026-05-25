@@ -2,32 +2,24 @@ import jwt from "jsonwebtoken";
 import {getCSRFSecret, getJWTSecret} from "./secret-provider.js";
 
 import { validateCSRFToken } from "./csrf.js";
-
-const CSRF_TOKEN_HEADER = 'X-CSRF-Token';
+import {CSRF_TOKEN_HEADER_NAME} from "./constants.js";
 
 export function tokenParser() {
 
     return (req, res, next) => {
 
-        const csrfToken = req.header(CSRF_TOKEN_HEADER);
-        const auth = req.cookies.auth
+        const token = req.cookies.auth
+        if (!token) return next();
 
-        // TODO create guest jwt
-        if (!auth) return next();
-
-        const jsonWebtoken = jwt.verify(auth, getJWTSecret());
-        const jti = jsonWebtoken.jti;
-
-        if (!validateCSRFToken(getCSRFSecret(), csrfToken, jti)) {
-            return req.status(403).json({ error: 'Invalid CSRF token' });
+        try {
+            req.jwt = jwt.verify(token, getJWTSecret());
+        } catch {
+            return res.status(401).json({ error: 'Invalid signature' });
         }
-
-        req.jwt = jsonWebtoken;
 
         next();
     }
 }
-
 
 export default function requireRole(...allowedRoles) {
 
@@ -47,4 +39,21 @@ export default function requireRole(...allowedRoles) {
 
         next();
     }
+}
+
+export function csrfProtection(req, res, next) {
+
+    if (req.method === 'GET') next();
+
+    const csrfToken = req.header(CSRF_TOKEN_HEADER_NAME);
+
+    if (!csrfToken) {
+        return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+
+    if (!validateCSRFToken(getCSRFSecret(), csrfToken, req.jwt.jti)) {
+        return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+
+    next();
 }

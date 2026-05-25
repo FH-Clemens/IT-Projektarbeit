@@ -1,11 +1,6 @@
-
-import { randomBytes, createHmac, timingSafeEqual } from "node:crypto";
-import { getCSRFSecret } from "./secret-provider.js";
+import {createHmac, timingSafeEqual} from "node:crypto";
 
 const ALGORITHM = 'sha256';
-
-// TODO throw error if no rand len
-// TODO throw error if secret is too short
 
 // Token format <hmac>.<rand>
 // HMAC enthält: <sessionid.length>!<sessionId>!<random.length>!<random> die sessionId ist die JWTID

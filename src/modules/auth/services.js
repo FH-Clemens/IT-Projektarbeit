@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 
-import { randomUUID } from 'node:crypto';
-import {findCredentialsByEmail} from "./persistence.js";
-import {verifyPassword} from "./hash.js";
-import {getCSRFSecret, getJWTSecret} from "./secret-provider.js";
-import {createCSRFToken} from "./csrf.js";
+import { randomUUID, randomBytes } from 'node:crypto';
+import { findCredentialsByEmail } from "./persistence.js";
+import { verifyPassword } from "./hash.js";
+import { getCSRFSecret, getJWTSecret } from "./secret-provider.js";
+import { createCSRFToken } from "./csrf.js";
 
 class AuthenticationResult {
 
@@ -70,7 +70,11 @@ export async function authenticateUser(email, password) {
     };
 
     const authToken = jwt.sign(body, secret, options);
-    const csrfToken = createCSRFToken(getCSRFSecret(), authToken['jti'], randomBytes(RAND_LEN).toString('base64url'));
+    const csrfToken = createCSRFToken(
+        getCSRFSecret(),
+        jwt.decode(authToken).jti,
+        randomBytes(32).toString('base64url')
+    );
 
     return new AuthenticationResult(true, authToken, csrfToken);
 }

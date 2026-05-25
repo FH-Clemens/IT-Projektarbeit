@@ -1,6 +1,5 @@
-import { authenticateUser } from "./services.js";
-import {createCSRFToken} from "./csrf.js";
-import {getCSRFSecret} from "./secret-provider.js";
+import {authenticateUser} from "./services.js";
+import {CSRF_TOKEN_COOKIE_NAME} from "./constants.js";
 
 /**
  * Application Module Tutorial:
@@ -16,10 +15,10 @@ export async function loginController(req, res, next) {
     const parsed = parseParams(req.body);
 
     if (!parsed) {
-        return res.status(400).json({ error: 'Malformed request. Email and password required' });
+        return res.status(400).json({error: 'Malformed request. Email and password required'});
     }
 
-    const { email, password } = parsed;
+    const {email, password} = parsed;
 
     authenticateUser(email, password)
         .then(result => {
@@ -33,7 +32,7 @@ export async function loginController(req, res, next) {
                     path: '/'
                 });
 
-                res.cookie('csrf_token', result.csrfToken, {
+                res.cookie(CSRF_TOKEN_COOKIE_NAME, result.csrfToken, {
                     httpOnly: false,
                     secure: process.env.NODE_ENV === 'production',
                     sameSite: 'strict',
@@ -44,7 +43,7 @@ export async function loginController(req, res, next) {
             }
 
             if (result.failureReason) {
-                return res.status(401).json({ error: result.failureReason });
+                return res.status(401).json({error: result.failureReason});
             }
 
             res.status(401).end();
@@ -59,5 +58,5 @@ function parseParams(body) {
     if (!('email' in body && typeof body.email === 'string')) return null;
     if (!('password' in body && typeof body.password === 'string')) return null;
 
-    return { email: body.email, password: body.password };
+    return {email: body.email, password: body.password};
 }
