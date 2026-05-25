@@ -1,6 +1,6 @@
 
 import { randomBytes, createHmac, timingSafeEqual } from "node:crypto";
-import {getCSRFSecret} from "./secret-provider.js";
+import { getCSRFSecret } from "./secret-provider.js";
 
 const ALGORITHM = 'sha256';
 const CSRF_VALID_MILLIS = Number(process.env.CSRF_VALID_SECONDS) * 1000;
@@ -76,8 +76,7 @@ function isExpired(issuedAtString) {
 * **/
 function isAuthenticMessage(rand, issuedAt, uid, secret, providedDigestHex) {
 
-    // Comparison wird als raw bytes gemacht, nicht hex
-    const actualDigestBytes = createHmac(ALGORITHM, secret)
+    const computedDigestBytes = createHmac(ALGORITHM, secret)
         .update(buildMessage(rand, issuedAt, uid))
         .digest();
 
@@ -89,9 +88,9 @@ function isAuthenticMessage(rand, issuedAt, uid, secret, providedDigestHex) {
         return false;
     }
 
-    if (actualDigestBytes.length !==  providedDigestBytes.length) return false;
+    if (computedDigestBytes.length !==  providedDigestBytes.length) return false;
 
-    return timingSafeEqual(actualDigestBytes, providedDigestBytes);
+    return timingSafeEqual(computedDigestBytes, providedDigestBytes);
 }
 
 export function validateCSRFToken(cookieToken, headerToken, uid) {
