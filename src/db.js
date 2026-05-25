@@ -18,6 +18,16 @@ export async function initDB() {
         );
     `);
 
+    // Tabelle für die Servicepunkte 
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS service_points(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL,
+            current_number INTEGER DEFAULT NULL
+        );
+    `);
+
     return db;
 }
 
