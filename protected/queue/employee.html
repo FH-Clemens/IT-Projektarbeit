@@ -16,7 +16,7 @@
 
 <script>
 
-    async function fetchQueue() {
+    async function  fetchQueue() {
         const res = await fetch('/api/queue/get-queue');
         const data = await res.json();
         const list = document.getElementById('queue-status-list');
@@ -26,16 +26,21 @@
             const itemDiv = document.createElement('div');
             itemDiv.className = "list-group-item d-flex justify-content-between align-items-center shadow-sm mb-2";
             itemDiv.innerHTML = `
-                <div>
-                    <strong>Nummer ${item.queueNumber}</strong>
-                    <span class="badge bg-secondary ms-2">${item.status || 'wartend'}</span>
-                </div>
-                <select class="form-select w-25" onchange="updateStatus(${item.queueNumber}, this.value)">
-                    <option value="wartend" ${item.status === 'wartend' ? 'selected' : ''}>wartend</option>
-                    <option value="in Bearbeitung" ${item.status === 'in Bearbeitung' ? 'selected' : ''}>in Bearbeitung</option>
-                    <option value="abgeschlossen" ${item.status === 'abgeschlossen' ? 'selected' : ''}>abgeschlossen</option>
-                </select>
-        `;
+                    <div>
+                        <strong>Nummer ${item.queueNumber}</strong>
+                        <span class="badge bg-secondary ms-2">${item.status || 'wartend'}</span>
+                    </div>
+                    <input type="text"
+                    id="servicepoint-${item.queueNumber}"
+                   class="form-control form-control-sm mb-2"
+                    placeholder="Servicepunkt (z.B. Schalter 1)"
+                    value="${item.servicePoint || ''}">
+                    <select class="form-select w-25" onchange="updateStatus(${item.queueNumber}, this.value)">
+                        <option value="wartend" ${item.status === 'wartend' ? 'selected' : ''}>wartend</option>
+                        <option value="in Bearbeitung" ${item.status === 'in Bearbeitung' ? 'selected' : ''}>in Bearbeitung</option>
+                        <option value="abgeschlossen" ${item.status === 'abgeschlossen' ? 'selected' : ''}>abgeschlossen</option>
+                    </select>
+                `;
             list.appendChild(itemDiv);
         });
     }
@@ -43,11 +48,17 @@
     async function updateStatus(num, newStatus) {
 
         const csrfEntry = await cookieStore.get('csrf_token');
+        const servicePointValue = document.getElementById(`servicepoint-${num}`)?.value || "";
+
 
         await fetch('/api/queue/update-status', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfEntry.value },
-            body: JSON.stringify({queueNumber: num, status: newStatus})
+            body: JSON.stringify({
+                queueNumber: num,
+                status: newStatus,
+                servicePoint: servicePointValue     // Servicepunkt an das Backend übertragen
+            })
         });
 
         fetchQueue(); // Liste aktualisieren
