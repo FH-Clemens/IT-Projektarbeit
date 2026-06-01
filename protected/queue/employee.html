@@ -14,7 +14,11 @@
     </div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
+
+    const socket = io();
 
     async function  fetchQueue() {
         const res = await fetch('/api/queue/get-queue');
@@ -29,6 +33,7 @@
                     <div>
                         <strong>Nummer ${item.queueNumber}</strong>
                         <span class="badge bg-secondary ms-2">${item.status || 'wartend'}</span>
+                        <div id="error-${item.queueNumber}" class="text-danger mt-1 small"></div>
                     </div>
                     <input type="text"
                     id="servicepoint-${item.queueNumber}"
@@ -50,22 +55,32 @@
         const csrfEntry = await cookieStore.get('csrf_token');
         const servicePointValue = document.getElementById(`servicepoint-${num}`)?.value || "";
 
+        const errorDiv = document.getElementById(`error-${num}`);
+        errorDiv.innerHTML = ``;
 
-        await fetch('/api/queue/update-status', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfEntry.value },
-            body: JSON.stringify({
-                queueNumber: num,
-                status: newStatus,
-                servicePoint: servicePointValue     // Servicepunkt an das Backend übertragen
-            })
-        });
 
-        fetchQueue(); // Liste aktualisieren
+        const response = await fetch('/api/queue/update-status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfEntry.value },
+                body: JSON.stringify({
+                    queueNumber: num,
+                    status: newStatus,
+                    servicePoint: servicePointValue     // Servicepunkt an das Backend übertragen
+                })
+            });
+
+        const result = await response.json();
+        if(!result.success){
+            errorDiv.textContent = "Bereit von anderem Schalter reserviert";
+        }
     }
 
+    // realtime listener stat alle 5 Sekunden refreshen
+    socket.on("queueChanged", () => {
+        fetchQueue();
+    });
     fetchQueue();
-    setInterval(fetchQueue, 5000); // Alle 5 Sekunden refreshen
+
 </script>
 </body>
 </html>

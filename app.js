@@ -1,6 +1,8 @@
 import express from 'express';
 import path from 'path';
 
+import { Server } from 'socket.io';
+
 import { fileURLToPath } from 'url';
 
 import requireRole, {tokenParser} from "./src/modules/auth/middleware.js";
@@ -13,6 +15,9 @@ import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
 import queueRouter from './src/modules/queue/routes.js';
 import ROLES from "./src/modules/auth/roles.js";
+import * as http from "node:http";
+
+import {setSocketServer} from "./src/realtime.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -21,6 +26,11 @@ global.__DATA_DIR__ = path.join(__APP_DIR__, "/queue-data");
 
 const port = 3000;
 const app = express();
+
+//websocket
+const httpServer = http.createServer(app);
+const io = new Server(httpServer);
+setSocketServer(io);
 
 // Middleware
 app.use(express.json());
@@ -45,8 +55,8 @@ async function start() {
 
     await startupManager.run();
 
-    app.listen(port, () => {
-        console.log(`App listening on port ${port}`)
+    httpServer.listen(port, () => {
+        console.log(`App listening on port ${port}`);
     })
 }
 
