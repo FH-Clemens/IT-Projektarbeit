@@ -1,9 +1,10 @@
 import express from 'express';
 import path from 'path';
-
+import dotenv from 'dotenv';
 import { Server } from 'socket.io';
-
 import { fileURLToPath } from 'url';
+
+dotenv.config();
 
 import requireRole, {tokenParser} from "./src/modules/auth/middleware.js";
 import cookieParser from 'cookie-parser';
