@@ -15,14 +15,12 @@ const router = express.Router();
 
 router.get(
     '/api/service-point/get-all',
-    csrfProtection,
     requireRole(ROLES.ADMIN, ROLES.CLERK),
     getAllServicePointsController
 )
 
 router.get(
     '/api/service-point/:id',
-    csrfProtection,
     requireRole(ROLES.ADMIN, ROLES.CLERK),
     getServicePointByIdController
 )
