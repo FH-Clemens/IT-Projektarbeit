@@ -15,6 +15,7 @@ import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/
 import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
 import queueRouter from './src/modules/queue/routes.js';
+import servicePointRouter from './src/modules/servicePoint/routes.js';
 import ROLES from "./src/modules/auth/roles.js";
 import * as http from "node:http";
 
@@ -44,6 +45,7 @@ app.use("/internal", requireRole(ROLES.ADMIN, ROLES.CLERK), express.static('prot
 app.use(authRouter);
 app.use("/api/employees", employeesRoutes);
 app.use(queueRouter);
+app.use(servicePointRouter);
 
 const startupManager = new StartupManager();
 
