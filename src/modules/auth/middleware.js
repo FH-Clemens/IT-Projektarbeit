@@ -43,7 +43,9 @@ export default function requireRole(...allowedRoles) {
 
 export function csrfProtection(req, res, next) {
 
-    if (req.method === 'GET') next();
+    if (req.method === 'GET') {
+        return next()
+    }
 
     const csrfToken = req.header(CSRF_TOKEN_HEADER_NAME);
 
