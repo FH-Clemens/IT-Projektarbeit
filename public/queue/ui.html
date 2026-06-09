@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warteschlange - IT Projekt</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 800px;
+            background-color: white;
+            border: 2px solid black;
+            box-shadow: 8px 8px 0px #bbb;
+        }
+        .header {
+            text-align: center;
+            font-size: 26px;
+            padding: 20px;
+            background-color: #eee;
+            border-bottom: 2px solid black;
+        }
+        .main-content {
+            display: flex;
+            min-height: 400px;
+        }
+        .column {
+            flex: 1;
+            padding: 20px;
+        }
+        .column-left {
+            border-right: 2px solid black;
+        }
+        h2 {
+            text-align: center;
+            font-size: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .list {
+            font-size: 22px;
+            line-height: 1.6;
+        }
+        .entry {
+            margin-bottom: 8px;
+        }
+        .status-dot {
+            font-size: 12px;
+            text-align: right;
+            padding: 5px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">Warteschlange Abteilung</div>
+        <div id="status" class="status-dot">Verbindung wird aufgebaut...</div>
+        
+        <div class="main-content">
+            <div class="column column-left">
+                <h2>In Warteschlange</h2>
+                <div id="liste-warten" class="list">
+                    </div>
+            </div>
+
+            <div class="column">
+                <h2>Bereit / Aufgerufen</h2>
+                <div id="liste-bereit" class="list">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function updateQueue() {
+            try {
+                // Wir nutzen den Endpunkt, den deine app.js bereits bereitstellt!
+                // Wichtig: Da dein Live Server auf 5500 läuft, das Backend aber auf 3000, 
+                // nehmen wir die absolute URL zum Backend.
+                const response = await fetch('http://localhost:3000/api/queue/get-queue');
+                
+                if (!response.ok) throw new Error('Server antwortet nicht');
+                
+                const result = await response.json();
+                const queue = result.queue; // Laut deiner app.js: {"queue": getQueue()}
+
+                const wartenDiv = document.getElementById('liste-warten');
+                const statusDiv = document.getElementById('status');
+
+                if (queue && queue.length > 0) {
+                    wartenDiv.innerHTML = queue
+                        .map(item => `<div class="entry">- Nummer ${item.queueNumber}</div>`)
+                        .join('');
+                    statusDiv.innerText = "Live: " + new Date().toLocaleTimeString();
+                } else {
+                    wartenDiv.innerHTML = "<div>Keine Personen in der Schlange</div>";
+                }
+
+                // Hinweis: Da dein aktueller Code noch keine "Raum"-Zuweisung 
+                // in der queue.js hat, bleibt die rechte Seite vorerst leer oder 
+                // zeigt Dummy-Daten, bis du die Logik dort erweiterst.
+
+            } catch (error) {
+                console.error("Fetch-Fehler:", error);
+                document.getElementById('status').innerText = "Fehler: Backend auf Port 3000 nicht erreichbar";
+            }
+        }
+
+        // Alle 2 Sekunden aktualisieren
+        setInterval(updateQueue, 2000);
+        updateQueue();
+    </script>
+</body>
+</html>

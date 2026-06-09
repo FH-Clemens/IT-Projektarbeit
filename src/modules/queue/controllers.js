@@ -23,5 +23,9 @@ export function updateStatusController(req, res) {
         return res.status(404).json({error: 'Queue entry not found'});
     }
 
+    if (!updated.success){
+        return res.status(404).json({error: updated.reason});
+    }
+
     res.status(204).end();
 }

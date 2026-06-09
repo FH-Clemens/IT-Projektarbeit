@@ -74,7 +74,12 @@
         <div id="status">Lade Daten...</div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
+
     <script>
+
+        const socket = io();
+
         async function updateQueue() {
     try {
         const response = await fetch('http://localhost:3000/api/queue/get-queue');
@@ -121,10 +126,12 @@
         document.getElementById('status').innerText = "Fehler: Verbindung zum Server fehlgeschlagen";
     }
 }
+    // realtime listener statt alle 2 Sekunden aktualisieren
+    socket.on("queueChanged", () => {
+        updateQueue();
+    });
+    updateQueue();
 
-// Alle 2 Sekunden aktualisieren
-setInterval(updateQueue, 2000);
-updateQueue();
     </script>
 </body>
 </html>

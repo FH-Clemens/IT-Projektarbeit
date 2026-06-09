@@ -1,8 +1,14 @@
 import { saveQueueEntry, getValidEntry} from "./localStorageManger.js";
 
+const socket = io();
+
 const queueButton = document.getElementById('enter-queue-button');
 const userNumberSpan = document.getElementById('user-number');
 const queueRenderList = document.getElementById('queue-render');
+
+socket.on("queueChanged", () => {
+    refreshQueueStatus();
+});
 
 function queueUp() {
 
@@ -53,7 +59,6 @@ queueButton.addEventListener('click', event => {
         userNumberSpan.textContent = storedEntry.queueNumber;
     }
 
-    refreshQueueStatus();
     event.stopPropagation();
 })
 

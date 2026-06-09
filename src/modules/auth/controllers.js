@@ -60,3 +60,19 @@ function parseParams(body) {
 
     return {email: body.email, password: body.password};
 }
+
+export function logoutController(req, res) {
+    // Löscht HTTP-Only Auth-Cookie
+    res.clearCookie('auth', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
+
+    // Löscht CSRF-Cookie 
+    res.clearCookie('csrf_token', { path: '/' }); 
+
+    // Sendet "204 No Content" zurück, um anzuzeigen, dass die Abmeldung erfolgreich war
+    return res.status(204).end();
+}

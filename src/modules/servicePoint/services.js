@@ -31,27 +31,21 @@ export async function getServicePoint(id) {
     return servicePoint;
 }
 
-// Service UPDATE: Ändert Status eines Schalters &&/|| die aktuelle Ticketnummer
 
-export async function updateStatus(id, newStatus) {
+export async function changeServicePointStatus(id, newStatus, ticketNumber) {
     const allowedStatuses = ['open', 'closed', 'break'];
+
     if (!allowedStatuses.includes(newStatus)) {
         throw new Error(`Invalid status. Allowed statuses are: ${allowedStatuses.join(', ')}`);
     }
 
-    const servicePoint = await getServicePoint(id);
-    return await updateServicePoint(servicePoint.id, newStatus, servicePoint.currentNumber);
-}
-
-// Service UPDATE: Weist dem Schalter eine Ticketnummer aus der Warteschlange zu 
-
-export async function callTicketNumber(id, ticketNumber) {
-    const servicePoint = await getServicePoint(id);
     if (!Number.isInteger(Number(ticketNumber))) {
         throw new Error('Ticket number must be an integer');
     }
-    // Setzt Status auf 'open', wenn eine Nummer aufgerufen wird
-    return await updateServicePoint(servicePoint.id, 'open', Number(ticketNumber));
+
+    const servicePoint = await getServicePoint(id);
+
+    return await updateServicePoint(servicePoint.id, newStatus, ticketNumber);
 }
 
 // Service DELETE: Entfernt einen Servicepunkt komplett aus System
