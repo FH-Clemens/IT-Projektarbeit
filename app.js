@@ -12,9 +12,9 @@ import cookieParser from 'cookie-parser';
 import StartupManager from "./src/startup.js";
 import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/hooks.js";
 
-import employeesRoutes from "./employeesRoutes.js";
 import authRouter from './src/modules/auth/routes.js';
 import queueRouter from './src/modules/queue/routes.js';
+import employeeRouter from './src/modules/employee/routes.js';
 import servicePointRouter from './src/modules/servicePoint/routes.js';
 import ROLES from "./src/modules/auth/roles.js";
 import * as http from "node:http";
@@ -43,8 +43,8 @@ app.use(tokenParser());
 app.use(express.static('public'));
 app.use("/internal", requireRole(ROLES.ADMIN, ROLES.CLERK), express.static('protected'));
 app.use(authRouter);
-app.use("/api/employees", employeesRoutes);
 app.use(queueRouter);
+app.use(employeeRouter);
 app.use(servicePointRouter);
 
 const startupManager = new StartupManager();
