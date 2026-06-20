@@ -112,7 +112,7 @@
         if (inBearbeitungNummern.length > 0) {
             inBearbeitungNummern.forEach(item => {
                 inBearbeitungDiv.innerHTML += `<div class="entry" style="color: blue; font-weight: bold;">
-                    >>> Nummer ${item.queueNumber}
+                    >>> Nummer ${item.queueNumber} ${item.servicePoint === 'default' ? '' : ':' + item.servicePoint}
                 </div>`;
             });
         } else {

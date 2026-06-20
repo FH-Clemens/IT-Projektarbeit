@@ -87,7 +87,7 @@
     if (confirm('Möchtest du dich wirklich abmelden?')) {
         try {
             const response = await fetch('/api/auth/logout', { method: 'POST' });
-            if (response.ok) window.location.href = '/queue/login.html';
+            if (response.ok) window.location.href = '/login.html';
         } catch (error) { console.error(error); }
     }
 });

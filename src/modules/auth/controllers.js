@@ -39,7 +39,7 @@ export async function loginController(req, res, next) {
                     path: '/'
                 })
 
-                return res.status(204).end();
+                return res.redirect(303, '/internal/queue/employee.html').end();
             }
 
             if (result.failureReason) {

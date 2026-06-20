@@ -1,5 +1,5 @@
 const STORAGE_KEY = "myQueueEntry";
-const EXPIRATION_MS = 5 * 1000;
+const EXPIRATION_MS = 20 * 1000;
 
 export function saveQueueEntry(queueNumber) {
     const entry = {
