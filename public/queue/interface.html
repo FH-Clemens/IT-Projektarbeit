@@ -81,51 +81,51 @@
         const socket = io();
 
         async function updateQueue() {
-    try {
-        const response = await fetch('http://localhost:3000/api/queue/get-queue');
-        if (!response.ok) throw new Error('Server antwortet nicht');
-        
-        const result = await response.json();
-        const queue = result.queue; 
+            try {
+                const response = await fetch('http://localhost:3000/api/queue/get-queue');
+                if (!response.ok) throw new Error('Server antwortet nicht');
 
-        const wartenDiv = document.getElementById('liste-warten');
-        const inBearbeitungDiv = document.querySelector('.column:last-child'); // Die rechte Spalte
-        const statusDiv = document.getElementById('status');
+                const result = await response.json();
+                const queue = result.queue;
 
-        // 1. Filter (status "wartend" oder kein status)
-        const wartendeNummern = queue.filter(item => item.status === 'wartend' || !item.status);
-        
-        // 2. Filter (status "in Bearbeitung")
-        const inBearbeitungNummern = queue.filter(item => item.status === 'in Bearbeitung');
+                const wartenDiv = document.getElementById('liste-warten');
+                const inBearbeitungDiv = document.querySelector('.column:last-child'); // Die rechte Spalte
+                const statusDiv = document.getElementById('status');
 
-        // Anzeige Linke Seite (Warten)
-        if (wartendeNummern.length > 0) {
-            wartenDiv.innerHTML = wartendeNummern
-                .map(item => `<div class=\"entry\">- Nummer ${item.queueNumber}</div>`)
-                .join('');
-        } else {
-            wartenDiv.innerHTML = "<div>Keine Personen in der Schlange</div>";
+                // 1. Filter (status "wartend" oder kein status)
+                const wartendeNummern = queue.filter(item => item.status === 'wartend' || !item.status);
+
+                // 2. Filter (status "in Bearbeitung")
+                const inBearbeitungNummern = queue.filter(item => item.status === 'in Bearbeitung');
+
+                // Anzeige Linke Seite (Warten)
+                if (wartendeNummern.length > 0) {
+                    wartenDiv.innerHTML = wartendeNummern
+                        .map(item => `<div class=\"entry\">- Nummer ${item.queueNumber}</div>`)
+                        .join('');
+                } else {
+                    wartenDiv.innerHTML = "<div>Keine Personen in der Schlange</div>";
+                }
+
+                // Anzeige Rechte Seite (In Bearbeitung)
+                inBearbeitungDiv.innerHTML = `<h2>In Bearbeitung</h2>`;
+                if (inBearbeitungNummern.length > 0) {
+                    inBearbeitungNummern.forEach(item => {
+                        inBearbeitungDiv.innerHTML += `<div class="entry" style="color: blue; font-weight: bold;">
+                            >>> Nummer ${item.queueNumber} ${item.servicePoint === 'default' ? '' : ':' + item.servicePoint}
+                        </div>`;
+                    });
+                } else {
+                    inBearbeitungDiv.innerHTML += "<div>Aktuell niemand dran</div>";
+                }
+
+                statusDiv.innerText = "Live: " + new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Fetch-Fehler:", error);
+                document.getElementById('status').innerText = "Fehler: Verbindung zum Server fehlgeschlagen";
+            }
         }
-
-        // Anzeige Rechte Seite (In Bearbeitung)
-        inBearbeitungDiv.innerHTML = `<h2>In Bearbeitung</h2>`; 
-        if (inBearbeitungNummern.length > 0) {
-            inBearbeitungNummern.forEach(item => {
-                inBearbeitungDiv.innerHTML += `<div class="entry" style="color: blue; font-weight: bold;">
-                    >>> Nummer ${item.queueNumber} ${item.servicePoint === 'default' ? '' : ':' + item.servicePoint}
-                </div>`;
-            });
-        } else {
-            inBearbeitungDiv.innerHTML += "<div>Aktuell niemand dran</div>";
-        }
-
-        statusDiv.innerText = "Live: " + new Date().toLocaleTimeString();
-
-    } catch (error) {
-        console.error("Fetch-Fehler:", error);
-        document.getElementById('status').innerText = "Fehler: Verbindung zum Server fehlgeschlagen";
-    }
-}
     // realtime listener statt alle 2 Sekunden aktualisieren
     socket.on("queueChanged", () => {
         updateQueue();
