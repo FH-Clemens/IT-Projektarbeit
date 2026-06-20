@@ -42,6 +42,7 @@ app.use(tokenParser());
 // Routes
 app.use(express.static('public'));
 app.use("/internal", requireRole(ROLES.ADMIN, ROLES.CLERK), express.static('protected'));
+app.use("/internal/admin", requireRole(ROLES.ADMIN), express.static('admin'));
 app.use(authRouter);
 app.use(queueRouter);
 app.use(employeeRouter);
