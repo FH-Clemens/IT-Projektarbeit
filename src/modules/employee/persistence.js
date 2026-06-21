@@ -1,5 +1,7 @@
 
-import db from '../../db.js';
+import {getDB} from "../../db.js";
+
+const db = await getDB();
 
 export async function employeeExistsById(id) {
     const query = 'SELECT id FROM employees WHERE id = ?;';
@@ -8,6 +10,7 @@ export async function employeeExistsById(id) {
 
 export async function createEmployee(name, email, passwordHash, role) {
     const query = `INSERT INTO employees (name, email, password_hash, role) VALUES (?, ?, ?, ?);`;
+
     return db.run(query, name, email, passwordHash, role)
         .then(result => result.lastID)
 }

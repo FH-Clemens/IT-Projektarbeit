@@ -1,10 +1,12 @@
 import sqlite3 from 'sqlite3';
 import {open} from 'sqlite';
 
-export async function initDB() {
+let dbPromise = null;
+
+async function initDB() {
 
     const db = await open ({
-       filename: './database.db',
+       filename: process.env.DB_PATH,
        driver: sqlite3.Database
     });
 
@@ -18,7 +20,6 @@ export async function initDB() {
         );
     `);
 
-    // Tabelle für die Servicepunkte 
     await db.exec(`
         CREATE TABLE IF NOT EXISTS service_points(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,6 +32,9 @@ export async function initDB() {
     return db;
 }
 
-const db = await initDB();
-
-export default db;
+export function getDB() {
+    if (!dbPromise) {
+        dbPromise = initDB();
+    }
+    return dbPromise;
+}

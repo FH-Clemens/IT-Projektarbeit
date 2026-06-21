@@ -10,6 +10,7 @@ async function setFlag(properties, out) {
 */
 
 import {readFile} from "node:fs/promises";
+import path from 'path';
 
 export default class StartupManager {
 
@@ -38,7 +39,7 @@ export default class StartupManager {
         let config = null;
 
         try {
-            const configPath = __APP_DIR__ + "/config.json";
+            const configPath = path.join(__DATA_DIR__, "config.json");
             const response = await readFile(configPath, 'utf-8');
 
             config = JSON.parse(response);
