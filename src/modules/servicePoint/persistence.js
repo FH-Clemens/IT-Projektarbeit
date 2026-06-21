@@ -1,6 +1,8 @@
-import db from '../../db.js';
+import { getDB } from "../../db.js";
 
-// Domain Entity für ServicePoint 
+// Domain Entity für ServicePoint
+
+const db = await getDB();
 
 export class ServicePoint {
     constructor(id, name, status, currentNumber = null) {

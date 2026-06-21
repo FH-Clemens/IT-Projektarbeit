@@ -1,5 +1,7 @@
-import db from '../../db.js';
+import {getDB} from "../../db.js";
 import ROLES from "./roles.js";
+
+const db = await getDB();
 
 const ROLES_ARRAY = Object.values(ROLES);
 
@@ -23,7 +25,6 @@ const QUERY = `
  * @returns {Promise<UserCredentials | null>}
  * */
 export async function findCredentialsByEmail(email) {
-
     return db.get(QUERY, email)
         .then(parseUserCredentialsRow)
         .catch(error => {

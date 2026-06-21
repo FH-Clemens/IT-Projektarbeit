@@ -9,13 +9,13 @@ async function setFlag(properties, out) {
 
 */
 
-import {readFile} from "node:fs/promises";
+import {loadConfig} from "./config.js";
 
-export default class StartupManager {
+class StartupManager {
 
     constructor() {
         this.hooks = [];
-        this.startupProperties = {};
+        this.config = null;
     }
 
     addHook(func) {
@@ -35,24 +35,15 @@ export default class StartupManager {
 
     async run() {
 
-        let config = null;
-
-        try {
-            const configPath = __APP_DIR__ + "/config.json";
-            const response = await readFile(configPath, 'utf-8');
-
-            config = JSON.parse(response);
-        } catch (e) {
-            console.error('Error reading config file: ', e);
-        }
-
-        if (config) {
-            Object.assign(this.startupProperties, config);
-        }
+        this.config = await loadConfig();
 
         if (this.hooks.length === 0) return;
 
         let parallelPromises = [];
+
+        function logError(err) {
+            console.error(`Error in startup hook: `, err);
+        }
 
         function abortStartup(reason, code) {
 
@@ -81,18 +72,19 @@ export default class StartupManager {
             };
 
             try {
-                const result = hook(this.startupProperties, outParams);
+                const result = hook(this.config, outParams);
 
                 if (result instanceof Promise) {
                     if (outParams.sequential) {
                         await result;
                     } else {
-                        parallelPromises.push(result);
+                        const safePromise = result.catch(logError);
+                        parallelPromises.push(safePromise);
                     }
                 }
 
             } catch (e) {
-                console.error('Error in startup hook: ', e);
+                logError(e);
             }
 
             if (outParams.__abort === true) {
@@ -105,3 +97,7 @@ export default class StartupManager {
         await Promise.all(parallelPromises);
     }
 }
+
+const instance = new StartupManager();
+
+export default instance;

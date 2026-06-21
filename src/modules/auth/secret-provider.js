@@ -1,12 +1,9 @@
-
-const jwtSecret = process.env.JWT_SECRET;
+import StartupManager from '../../startup.js';
 
 export function getJWTSecret() {
-    return jwtSecret;
+    return StartupManager.config.JWT_SECRET;
 }
 
-const csrfSecret = process.env.CSRF_SECRET;
-
 export function getCSRFSecret() {
-    return csrfSecret;
+    return StartupManager.config.CSRF_SECRET;
 }

@@ -18,7 +18,7 @@ export function saveQueue(){
     const folder = now.toISOString().slice(0,10).replaceAll('-', '');
     const file = now.toISOString().slice(11,19).replaceAll(':', '') + '.json';
 
-    const folderPath = path.join(__DATA_DIR__, folder);
+    const folderPath = path.join(__QUEUE_DATA_DIR__, folder);
     const filePath = path.join(folderPath, file);
 
     if(!fs.existsSync(folderPath)){
@@ -33,12 +33,12 @@ export function saveQueue(){
  */
 export async function loadQueueFromDisk() {
 
-    if (!fs.existsSync(__DATA_DIR__)) {
+    if (!fs.existsSync(__QUEUE_DATA_DIR__)) {
         console.info("No queue-data directory found. Starting with empty queue.");
         return;
     }
 
-    const folders = (await fsasync.readdir(__DATA_DIR__))
+    const folders = (await fsasync.readdir(__QUEUE_DATA_DIR__))
         .filter(folder => /^\d{8}$/.test(folder))
         .sort();
 
@@ -51,7 +51,7 @@ export async function loadQueueFromDisk() {
     const latestFolder = folders.at(-1);
 
 
-    const files = (await fsasync.readdir(path.join(__DATA_DIR__, latestFolder)))
+    const files = (await fsasync.readdir(path.join(__QUEUE_DATA_DIR__, latestFolder)))
         .filter(folder => /^\d{6}\.json$/.test(folder))
         .sort();
 
@@ -62,7 +62,7 @@ export async function loadQueueFromDisk() {
     }
 
     const content = await fsasync.readFile(
-        path.join(__DATA_DIR__, latestFolder, files.at(-1)),
+        path.join(__QUEUE_DATA_DIR__, latestFolder, files.at(-1)),
         'utf8'
     );
 
@@ -84,14 +84,23 @@ export async function removeStaleQueueData(minAgeDays = 3) {
     const threshold = `${year}${month}${day}`;
 
     let didRemove = false;
-    const entries = await fsasync.readdir(__DATA_DIR__);
+
+    await fsasync.mkdir(__QUEUE_DATA_DIR__, { recursive: true });
+    const entries = await fsasync.readdir(__QUEUE_DATA_DIR__);
 
     for (const folderName of entries) {
 
         if (/^\d{8}$/.test(folderName)) {
 
             if (folderName < threshold) {
-                const fullPath = path.join(__DATA_DIR__, folderName);
+                const fullPath = path.join(__QUEUE_DATA_DIR__, folderName);
+
+                const stat = await fsasync.lstat(fullPath);
+
+                if (!stat.isDirectory() || stat.isSymbolicLink()) {
+                    continue;
+                }
+
                 await fsasync.rm(fullPath, { recursive: true, force: true });
                 didRemove = true;
                 console.log("Deleted:", folderName);

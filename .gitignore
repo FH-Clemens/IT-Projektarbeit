@@ -19,12 +19,9 @@ lerna-debug.log*
 *.tmp
 
 node_modules/
-queue-data/
+data/queue-data
 
 .npm
 .env
 .tmp
 .temp
-
-dist/
-
