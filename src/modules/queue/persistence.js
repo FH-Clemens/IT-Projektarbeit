@@ -85,7 +85,7 @@ export async function removeStaleQueueData(minAgeDays = 3) {
 
     let didRemove = false;
 
-
+    await fsasync.mkdir(__QUEUE_DATA_DIR__, { recursive: true });
     const entries = await fsasync.readdir(__QUEUE_DATA_DIR__);
 
     for (const folderName of entries) {
