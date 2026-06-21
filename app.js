@@ -8,6 +8,7 @@ dotenv.config();
 
 import requireRole, {tokenParser} from "./src/modules/auth/middleware.js";
 import cookieParser from 'cookie-parser';
+import genSecret from "./src/modules/crypto/hooks.js";
 
 import StartupManager from "./src/startup.js";
 import { removeStaleDataHook, loadQueueFromDiskHook } from "./src/modules/queue/hooks.js";
@@ -54,16 +55,15 @@ app.use(queueRouter);
 app.use(employeeRouter);
 app.use(servicePointRouter);
 
-const startupManager = new StartupManager();
-
-startupManager.addHook(removeStaleDataHook);
-startupManager.addHook(loadQueueFromDiskHook);
+StartupManager.addHook(genSecret);
+StartupManager.addHook(removeStaleDataHook);
+StartupManager.addHook(loadQueueFromDiskHook);
 
 async function start() {
 
     console.log('Starting server...');
 
-    await startupManager.run();
+    await StartupManager.run();
 
     httpServer.listen(port, () => {
         console.log(`App listening on port ${port}`);

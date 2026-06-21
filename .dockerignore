@@ -26,3 +26,4 @@ docker-compose.yml
 .dockerignore
 
 LICENSE
+data/queue-data

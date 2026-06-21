@@ -6,11 +6,11 @@ export async function loadQueueFromDiskHook(_, out) {
     await loadQueueFromDisk();
 }
 
-export async function removeStaleDataHook(properties, out){
+export async function removeStaleDataHook(config, out){
 
     out.sequential = true;
 
-    const retainDays = properties["queue.retain-data-days"] || 3;
+    const retainDays = config["queue.retain-data-days"] || 3;
 
     console.info(`Removing stale data. Retaining ${retainDays} days...`);
 
@@ -22,8 +22,8 @@ export async function removeStaleDataHook(properties, out){
         }
     }).finally(() => {
 
-        const age = properties['queue.retain-data-days'];
-        const schedule = properties['queue.purge-data-schedule'];
+        const age = config['queue.retain-data-days'];
+        const schedule = config['queue.purge-data-schedule'];
 
         if (cron.validate(schedule) && typeof age === 'number' && age >= 1) {
             cron.schedule(schedule, () => removeStaleQueueData(age));
