@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    image: group-11:latest
+
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+
+      NODE_ENV: production
+      DB_PATH: /app/data/database.db
+      JWT_SECRET: ${JWT_SECRET}
+      CSRF_SECRET: ${CSRF_SECRET}
+
+    volumes:
+      - app-data:/app/data
+
+volumes:
+  app-data:

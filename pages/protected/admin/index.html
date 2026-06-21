@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Seite</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root{
+            --sidebar-w: 240px;
+            --brand: #4f46e5;
+        }
+        body{
+            background:#f4f5f7;
+        }
+
+        .sidebar .nav-link i{
+            width:1.25rem;
+        }
+
+        .topbar{
+            background:#fff;
+            border-bottom:1px solid #e5e7eb;
+        }
+
+        .table-card{
+            border:1px solid #e5e7eb;
+            border-radius:.75rem;
+            background:#fff;
+        }
+        .table > :not(caption) > * > *{
+            padding:.85rem 1rem;
+        }
+        .table thead th{
+            font-size:.75rem;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+            color:#6b7280;
+            background:#f9fafb;
+            border-bottom:1px solid #e5e7eb;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="d-flex">
+
+    <div class="flex-grow-1 d-flex flex-column" style="min-width:0;">
+
+        <header class="topbar d-flex align-items-center justify-content-between px-4 py-3">
+            <div>
+                <h5 class="mb-0">Mitarbeiter</h5>
+                <small class="text-secondary">Mitarbeiter verwalten</small>
+            </div>
+
+            <button id="logout-btn" class="btn btn-danger">Abmelden</button>
+        </header>
+
+        <main class="p-4">
+
+            <div class="table-card">
+                <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="mb-0">Alle Mitarbeiter</h6>
+                    </div>
+
+                    <button id="createEmployeeBtn" type="button" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-lg"></i> Neuer Mitarbeiter
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Rolle</th>
+                            <th>Email</th>
+                            <th class="text-end">Aktionen</th>
+                        </tr>
+                        </thead>
+                        <tbody id="employeeTableBody"></tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="createEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Neuer Mitarbeiter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="createEmployeeForm">
+                    <div class="row g-3">
+
+                        <div class="col-sm-6">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="name" placeholder="Max Mustermann">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" placeholder="max-mustermann@mail.at">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Passwort</label>
+                            <input type="password" class="form-control" name="password" placeholder="">
+                            <span class="form-text">Passwort muss mindestens 12 Zeichen haben</span>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label class="form-label">Rolle</label>
+                            <select class="form-select" name="role">
+                                <option value="admin">Admin</option>
+                                <option value="clerk" selected>Mitarbeiter</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button id="cancelCreateEmployee" type="button" class="btn btn-light border" data-bs-dismiss="modal">Abbrechen</button>
+                <button id="confirmCreateEmployee" type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-plus-lg me-1"></i>Erstellen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Mitarbeiter Löschen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-0">
+                    Bestätigen Sie die Löschung eines Mitarbeiters<br>
+                    <strong id="deleteEmployeeName"></strong><br>
+                    Diese Aktion kann nicht rückgängig gemacht werden.
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Abbrechen</button>
+                <button id="confirmDeleteEmployee" type="button" class="btn btn-danger">
+                    <i class="bi bi-trash3 me-1"></i>Löschen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            if (confirm('Möchtest du dich wirklich abmelden?')) {
+                try {
+                    const response = await fetch('/api/auth/logout', {method: 'POST'});
+                    if (response.ok) window.location.href = '/login.html';
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        });
+    })
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const createEmployeeForm = document.getElementById('createEmployeeForm');
+        const createEmployeeModalEl = document.getElementById('createEmployeeModal');
+        const createEmployeeModal = bootstrap.Modal.getOrCreateInstance(createEmployeeModalEl);
+
+        document.getElementById('createEmployeeBtn').addEventListener('click', () => {
+            createEmployeeModal.show();
+        });
+
+        document.getElementById('confirmCreateEmployee').addEventListener('click', async () => {
+            const formData = new FormData(createEmployeeForm);
+
+            const employee = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                role: formData.get('role'),
+                password: formData.get('password'),
+            };
+
+            if (!employee.name || !employee.email) {
+                alert('Please fill in name and email.');
+                return;
+            }
+
+            const csrfEntry = await cookieStore.get('csrf_token') ?? null;
+            if (csrfEntry === null) throw new Error('Failed to fetch CSRF token');
+
+            try {
+
+                const response = await fetch('/api/employees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfEntry.value },
+                    body: JSON.stringify(employee),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+
+                createEmployeeForm.reset();
+                createEmployeeModal.hide();
+
+                await renderEmployees();
+            } catch (err) {
+                console.error(err);
+                alert(`Could not create employee: ${err}`);
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteEmployeeModalEl = document.getElementById('deleteEmployeeModal');
+        const deleteEmployeeModal = bootstrap.Modal.getOrCreateInstance(deleteEmployeeModalEl);
+        const deleteEmployeeName = document.getElementById('deleteEmployeeName');
+
+        let employeeIdToDelete = null;
+
+        document.getElementById('employeeTableBody').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-delete-employee');
+            if (!btn) return;
+
+            employeeIdToDelete = Number(btn.dataset.employeeId);
+            deleteEmployeeName.textContent = btn.dataset.employeeName ?? 'this employee';
+
+            deleteEmployeeModal.show();
+        });
+
+        document.getElementById('confirmDeleteEmployee').addEventListener('click', async () => {
+            if (!employeeIdToDelete) return;
+
+            const csrfEntry = await cookieStore.get('csrf_token') ?? null;
+            if (csrfEntry === null) throw new Error('Failed to fetch CSRF token');
+
+            try {
+                const response = await fetch(`/api/employees/${employeeIdToDelete}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrfEntry.value },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+
+                document.querySelector(`tr[data-employee-id="${employeeIdToDelete}"]`)?.remove();
+                deleteEmployeeModal.hide();
+            } catch (err) {
+                console.error(err);
+                alert('Could not delete employee. Please try again.');
+            } finally {
+                employeeIdToDelete = null;
+                await renderEmployees();
+            }
+        });
+    });
+
+    function buildEmployeeRow(employee) {
+
+        const tableRow = document.createElement('tr');
+
+        const idCell = document.createElement('td');
+        tableRow.appendChild(idCell);
+
+        idCell.textContent = employee.id;
+
+        const nameCell = document.createElement('td');
+        tableRow.appendChild(nameCell);
+
+        nameCell.textContent = employee.name;
+
+        const roleCell = document.createElement('td');
+        tableRow.appendChild(roleCell);
+
+        roleCell.textContent = employee.role;
+
+        const emailCell = document.createElement('td');
+        tableRow.appendChild(emailCell);
+
+        emailCell.textContent = employee.email;
+
+        const actionCell = document.createElement('td');
+        tableRow.appendChild(actionCell);
+
+        actionCell.classList.add('text-end');
+
+        const deleteButton = document.createElement('button');
+        actionCell.appendChild(deleteButton);
+
+        deleteButton.dataset.employeeId = employee.id;
+        deleteButton.dataset.employeeName = employee.name;
+        deleteButton.classList.add('btn', 'btn-sm', 'btn-light', 'border', 'text-danger', 'btn-delete-employee');
+
+        const deleteIcon = document.createElement('i');
+        deleteButton.appendChild(deleteIcon);
+
+        deleteIcon.classList.add('bi', 'bi-trash3');
+
+        return tableRow;
+    }
+
+    async function fetchEmployees() {
+
+        const csrfEntry = await cookieStore.get('csrf_token') ?? null;
+        if (csrfEntry === null) throw new Error('Failed to fetch CSRF token');
+
+        const params = new URLSearchParams({ size: 50 })
+
+        const response = await fetch(`/api/employees?${params}`, {
+            method: 'GET',
+            headers: { 'X-CSRF-TOKEN': csrfEntry.value },
+        });
+
+        if (!response.ok) {
+            console.error('Failed to fetch employee page');
+            return;
+        }
+
+        return response.json();
+    }
+
+    async function renderEmployees() {
+        const tbody = document.getElementById('employeeTableBody');
+        tbody.innerHTML = "";
+        fetchEmployees().then(response => tbody.append(...response.data.map(buildEmployeeRow)));
+    }
+
+    renderEmployees();
+</script>
+
+</body>
+</html>

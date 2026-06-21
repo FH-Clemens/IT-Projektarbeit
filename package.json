@@ -1,0 +1,29 @@
+{
+  "name": "virtual-queue-system",
+  "version": "1.0.0",
+  "description": "FH IT-Projekt virtuelle warteschlange für Unternehmen",
+  "main": "app.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FH-Clemens/IT-Projektarbeit.git"
+  },
+  "author": "gruppe-11",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FH-Clemens/IT-Projektarbeit/issues"
+  },
+  "homepage": "https://github.com/FH-Clemens/IT-Projektarbeit#readme",
+  "dependencies": {
+    "bcrypt": "6.0.0",
+    "cookie-parser": "1.4.7",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "jsonwebtoken": "9.0.3",
+    "node-cron": "4.2.1",
+    "socket.io": "4.8.3",
+    "sqlite": "5.1.1",
+    "sqlite3": "6.0.1"
+  },
+  "type": "module"
+}

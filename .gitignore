@@ -1,4 +1,12 @@
 
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
 # Jetbrains
 .idea/*
 
@@ -9,3 +17,11 @@
 .~lock.*
 
 *.tmp
+
+node_modules/
+data/queue-data
+
+.npm
+.env
+.tmp
+.temp

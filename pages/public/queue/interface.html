@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warteschlange - IT Projekt</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 800px;
+            background-color: white;
+            border: 2px solid black;
+            box-shadow: 8px 8px 0 #bbb;
+            height: auto; 
+            margin-bottom: 50px; 
+        }
+        .header {
+            text-align: center;
+            font-size: 26px;
+            padding: 20px;
+            background-color: #eee;
+            border-bottom: 2px solid black;
+        }
+        .main-content {
+            display: flex;
+            min-height: 400px;
+        }
+        .column {
+            flex: 1;
+            padding: 20px;
+        }
+        .column-left {
+            border-right: 2px solid black;
+        }
+        h2 {
+            text-align: center;
+            text-decoration: underline;
+        }
+        .entry {
+            font-size: 22px;
+            margin: 10px 0;
+        }
+        #status {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            border-top: 2px solid black;
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">VIRTUAL QUEUE SYSTEM</div>
+        <div class="main-content">
+            <div class="column column-left">
+                <h2>Wartend</h2>
+                <div id="liste-warten">
+                    </div>
+            </div>
+            <div class="column" id="liste-bearbeitung">
+                <h2>In Bearbeitung</h2>
+                </div>
+        </div>
+        <div id="status">Lade Daten...</div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+
+        const socket = io();
+
+        async function updateQueue() {
+            try {
+                const response = await fetch('http://localhost:3000/api/queue/get-queue');
+                if (!response.ok) throw new Error('Server antwortet nicht');
+
+                const result = await response.json();
+                const queue = result.queue;
+
+                const wartenDiv = document.getElementById('liste-warten');
+                const inBearbeitungDiv = document.querySelector('.column:last-child'); // Die rechte Spalte
+                const statusDiv = document.getElementById('status');
+
+                // 1. Filter (status "wartend" oder kein status)
+                const wartendeNummern = queue.filter(item => item.status === 'wartend' || !item.status);
+
+                // 2. Filter (status "in Bearbeitung")
+                const inBearbeitungNummern = queue.filter(item => item.status === 'in Bearbeitung');
+
+                // Anzeige Linke Seite (Warten)
+                if (wartendeNummern.length > 0) {
+                    wartenDiv.innerHTML = wartendeNummern
+                        .map(item => `<div class=\"entry\">- Nummer ${item.queueNumber}</div>`)
+                        .join('');
+                } else {
+                    wartenDiv.innerHTML = "<div>Keine Personen in der Schlange</div>";
+                }
+
+                // Anzeige Rechte Seite (In Bearbeitung)
+                inBearbeitungDiv.innerHTML = `<h2>In Bearbeitung</h2>`;
+                if (inBearbeitungNummern.length > 0) {
+                    inBearbeitungNummern.forEach(item => {
+                        inBearbeitungDiv.innerHTML += `<div class="entry" style="color: blue; font-weight: bold;">
+                            >>> Nummer ${item.queueNumber} ${item.servicePoint === 'default' ? '' : ':' + item.servicePoint}
+                        </div>`;
+                    });
+                } else {
+                    inBearbeitungDiv.innerHTML += "<div>Aktuell niemand dran</div>";
+                }
+
+                statusDiv.innerText = "Live: " + new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Fetch-Fehler:", error);
+                document.getElementById('status').innerText = "Fehler: Verbindung zum Server fehlgeschlagen";
+            }
+        }
+    // realtime listener statt alle 2 Sekunden aktualisieren
+    socket.on("queueChanged", () => {
+        updateQueue();
+    });
+    updateQueue();
+
+    </script>
+</body>
+</html>
